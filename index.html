@@ -70,12 +70,12 @@
     }
 
     .topbar .shell {
-      min-height: 46px;
+      min-height: 34px;
       display: flex;
       align-items: center;
       justify-content: space-between;
-      gap: 18px;
-      font-size: 12px;
+      gap: 12px;
+      font-size: 10px;
       letter-spacing: .08em;
       text-transform: uppercase;
       color: rgba(255,255,255,.88);
@@ -108,9 +108,9 @@
       position: absolute;
       right: -40px;
       bottom: -22px;
-      width: min(740px, 48vw);
-      height: 390px;
-      opacity: .46;
+      width: min(520px, 40vw);
+      height: 250px;
+      opacity: .28;
       background-image:
         linear-gradient(var(--yellow), var(--yellow)),
         linear-gradient(var(--navy), var(--navy)),
@@ -122,33 +122,33 @@
         linear-gradient(var(--green), var(--green)),
         linear-gradient(var(--yellow), var(--yellow)),
         linear-gradient(var(--navy), var(--navy));
-      background-size: 170px 82px, 170px 82px, 170px 82px, 170px 82px, 170px 82px, 170px 82px, 170px 82px, 170px 82px, 170px 82px, 170px 82px;
-      background-position: 0 0, 188px 0, 376px 0, 94px 96px, 282px 96px, 470px 96px, 0 192px, 188px 192px, 376px 192px, 94px 288px;
+      background-size: 125px 60px, 125px 60px, 125px 60px, 125px 60px, 125px 60px, 125px 60px, 125px 60px, 125px 60px, 125px 60px, 125px 60px;
+      background-position: 0 0, 138px 0, 276px 0, 69px 72px, 207px 72px, 345px 72px, 0 144px, 138px 144px, 276px 144px, 69px 216px;
       background-repeat: no-repeat;
       clip-path: var(--notch);
       filter: saturate(1.05);
     }
 
-    .hero-inner { position: relative; z-index: 1; padding: 30px 0 42px; }
+    .hero-inner { position: relative; z-index: 1; padding: 18px 0 24px; }
 
     .brand-row {
       display: flex;
       align-items: center;
       justify-content: space-between;
-      gap: 22px;
-      margin-bottom: 34px;
+      gap: 16px;
+      margin-bottom: 16px;
     }
 
     .brand {
       display: flex;
       align-items: center;
-      gap: 16px;
+      gap: 12px;
       min-width: 0;
     }
 
     .brand-mark {
-      width: 64px;
-      height: 64px;
+      width: 48px;
+      height: 48px;
       display: grid;
       place-items: center;
       color: #fff;
@@ -165,24 +165,24 @@
     .brand-mark::after {
       content: "";
       position: absolute;
-      width: 84px;
-      height: 9px;
+      width: 66px;
+      height: 7px;
       background: rgba(255,210,0,.95);
       transform: rotate(-25deg);
-      left: -18px;
+      left: -14px;
     }
-    .brand-mark::before { top: 17px; }
-    .brand-mark::after { top: 36px; background: rgba(0,216,102,.92); }
+    .brand-mark::before { top: 13px; }
+    .brand-mark::after { top: 28px; background: rgba(0,216,102,.92); }
 
     .brand-logo-card {
-      width: 174px;
-      height: 76px;
+      width: 128px;
+      height: 56px;
       background: #fff;
       display: grid;
       place-items: center;
       box-shadow: 0 16px 45px rgba(0,0,0,.20);
       clip-path: var(--notch-sm);
-      padding: 14px 22px;
+      padding: 9px 16px;
     }
     .brand-logo-card img { width: 100%; height: auto; display: block; }
 
@@ -197,8 +197,8 @@
 
     .brand-text strong {
       display: block;
-      font-size: 21px;
-      line-height: 1.1;
+      font-size: 18px;
+      line-height: 1.05;
       letter-spacing: -.02em;
     }
 
@@ -206,8 +206,8 @@
 
     .hero-grid {
       display: grid;
-      grid-template-columns: minmax(0, 1.15fr) minmax(330px, .85fr);
-      gap: 30px;
+      grid-template-columns: minmax(0, 1fr) minmax(270px, .62fr);
+      gap: 20px;
       align-items: end;
     }
 
@@ -218,18 +218,18 @@
       background: rgba(255,255,255,.14);
       border: 1px solid rgba(255,255,255,.22);
       clip-path: var(--notch-sm);
-      padding: 10px 16px;
-      font-size: 13px;
+      padding: 7px 12px;
+      font-size: 11px;
       color: rgba(255,255,255,.94);
       font-weight: 900;
-      margin-bottom: 18px;
+      margin-bottom: 10px;
       box-shadow: 0 10px 28px rgba(0,0,0,.10);
     }
 
     h1 {
       margin: 0;
       max-width: 900px;
-      font-size: clamp(34px, 5.2vw, 68px);
+      font-size: clamp(26px, 3.2vw, 44px);
       letter-spacing: -.060em;
       line-height: .95;
       font-weight: 950;
@@ -239,9 +239,9 @@
     .hero p {
       max-width: 760px;
       color: rgba(255,255,255,.88);
-      font-size: 16px;
-      line-height: 1.7;
-      margin: 20px 0 0;
+      font-size: 13px;
+      line-height: 1.55;
+      margin: 10px 0 0;
     }
 
     .rule-card {
@@ -251,8 +251,8 @@
       background: rgba(255,255,255,.13);
       border: 1px solid rgba(255,255,255,.22);
       backdrop-filter: blur(12px);
-      padding: 24px;
-      box-shadow: 0 24px 70px rgba(0,0,0,.18);
+      padding: 16px;
+      box-shadow: 0 16px 42px rgba(0,0,0,.14);
     }
     .rule-card::before {
       content: "";
@@ -277,8 +277,8 @@
       opacity: .58;
     }
 
-    .rule-card h2 { margin: 0 0 8px; font-size: 18px; position: relative; z-index: 1; }
-    .rule-card p { margin: 0; font-size: 14px; line-height: 1.65; color: rgba(255,255,255,.86); position: relative; z-index: 1; }
+    .rule-card h2 { margin: 0 0 6px; font-size: 15px; position: relative; z-index: 1; }
+    .rule-card p { margin: 0; font-size: 12px; line-height: 1.65; color: rgba(255,255,255,.86); position: relative; z-index: 1; }
 
     .tabs {
       position: sticky;
@@ -318,6 +318,102 @@
     main { padding: 30px 0 54px; }
     .view { display: none; }
     .view.active { display: block; }
+
+    .start-panel {
+      padding: 26px;
+      overflow: hidden;
+      position: relative;
+    }
+    .start-panel::after {
+      content: "";
+      position: absolute;
+      right: -34px;
+      top: 22px;
+      width: 190px;
+      height: 86px;
+      background: rgba(8,169,223,.12);
+      clip-path: var(--notch-sm);
+      pointer-events: none;
+    }
+    .start-intro {
+      max-width: 820px;
+      margin-bottom: 18px;
+      position: relative;
+      z-index: 1;
+    }
+    .start-intro h2 {
+      margin: 0;
+      font-size: 31px;
+      letter-spacing: -.04em;
+      color: var(--navy);
+    }
+    .start-intro p {
+      margin: 7px 0 0;
+      color: var(--muted);
+      line-height: 1.55;
+    }
+    .start-grid {
+      display: grid;
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+      gap: 14px;
+      position: relative;
+      z-index: 1;
+    }
+    .start-card {
+      border: 1px solid var(--line);
+      background: #fff;
+      color: var(--ink);
+      clip-path: var(--notch);
+      padding: 19px;
+      min-height: 154px;
+      text-align: left;
+      box-shadow: var(--shadow-soft);
+      display: flex;
+      flex-direction: column;
+      align-items: flex-start;
+      justify-content: space-between;
+      gap: 14px;
+      transition: .18s ease;
+      text-decoration: none;
+    }
+    .start-card:hover {
+      transform: translateY(-2px);
+      box-shadow: var(--shadow);
+      border-color: rgba(8,169,223,.42);
+    }
+    .start-card.highlight {
+      background: linear-gradient(135deg, var(--navy), var(--blue));
+      color: #fff;
+      border-color: var(--navy);
+    }
+    .start-card .icon {
+      width: 42px;
+      height: 42px;
+      display: grid;
+      place-items: center;
+      clip-path: var(--notch-sm);
+      background: var(--yellow);
+      color: var(--navy);
+      font-size: 20px;
+      font-weight: 950;
+    }
+    .start-card strong {
+      display: block;
+      font-size: 18px;
+      letter-spacing: -.025em;
+    }
+    .start-card span:last-child {
+      display: block;
+      margin-top: 5px;
+      color: inherit;
+      opacity: .72;
+      font-size: 13px;
+      line-height: 1.45;
+    }
+    .form-section.focus-section {
+      border-color: var(--cyan);
+      box-shadow: 0 0 0 4px rgba(8,169,223,.13), var(--shadow-soft);
+    }
 
     .kpi-grid {
       display: grid;
@@ -622,7 +718,8 @@
 
     @media (max-width: 1120px) {
       .hero-grid, .settings-grid, .insight-grid { grid-template-columns: 1fr; }
-      .hero::after { width: 520px; opacity: .24; }
+      .hero::after { width: 420px; opacity: .18; }
+      .start-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
       .kpi-grid { grid-template-columns: repeat(3, minmax(0, 1fr)); }
       .alert-grid, .history-grid { grid-template-columns: 1fr; }
     }
@@ -633,7 +730,8 @@
       .hero-actions { width: 100%; }
       .hero-actions .btn { flex: 1; }
       .kpi-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
-      .form-grid, .filters, .config-grid, .metric-row, .mini-kpis { grid-template-columns: 1fr; }
+      .form-grid, .filters, .config-grid, .metric-row, .mini-kpis, .start-grid { grid-template-columns: 1fr; }
+      .start-card { min-height: 132px; }
       .inline-form.factory, .inline-form.project { grid-template-columns: 1fr; }
       .shell { padding: 0 15px; }
       .section-card { padding: 18px; }
@@ -641,8 +739,8 @@
 
     @media (max-width: 520px) {
       .kpi-grid { grid-template-columns: 1fr; }
-      h1 { font-size: 36px; }
-      .brand-logo-card { width: 150px; height: 66px; }
+      h1 { font-size: 30px; }
+      .brand-logo-card { width: 118px; height: 52px; }
       .topbar .shell { align-items: flex-start; flex-direction: column; padding-top: 12px; padding-bottom: 14px; gap: 4px; }
       .modal { padding: 18px; }
     }
@@ -681,9 +779,9 @@
       <div class="hero-grid">
         <div>
           <div class="eyebrow">▰ Somos o Brasil em movimento — aplicado à inspeção</div>
-          <h1>Lotes, séries e ensaios em movimento</h1>
+          <h1>Controle técnico de dormentes</h1>
           <p>
-            Controle a produção de dormentes por fábrica e projeto, acompanhe as séries e receba alertas objetivos quando bater 2.000 dormentes ou 10 lotes, o que ocorrer primeiro.
+            Registre lotes, slump test e ensaios de liberação com rastreabilidade por fábrica, projeto e série.
           </p>
         </div>
         <div class="rule-card">
@@ -696,7 +794,8 @@
 
   <nav class="tabs">
     <div class="shell">
-      <button class="tab-btn active" data-tab="painel">▣ Painel</button>
+      <button class="tab-btn active" data-tab="inicio">⌂ Início</button>
+      <button class="tab-btn" data-tab="painel">▣ Painel</button>
       <button class="tab-btn" data-tab="cadastro">＋ Cadastrar lote</button>
       <button class="tab-btn" data-tab="lotes">☷ Lotes</button>
       <button class="tab-btn" data-tab="ensaios">✓ Ensaios</button>
@@ -705,7 +804,49 @@
   </nav>
 
   <main class="shell">
-    <section id="painel" class="view active">
+    <section id="inicio" class="view active">
+      <div class="section-card start-panel">
+        <div class="start-intro">
+          <h2>O que você quer fazer agora?</h2>
+          <p>Escolha uma opção para ir direto ao fluxo correto: cadastro de lote, resultado de ensaio, slump test, consulta, painel ou importação de dados.</p>
+        </div>
+
+        <div class="start-grid">
+          <button class="start-card highlight" type="button" data-tab-target="cadastro">
+            <span class="icon">＋</span>
+            <span><strong>Cadastrar lote</strong><span>Adicionar produção, fábrica, projeto, datas, ombreiras, USP e status.</span></span>
+          </button>
+
+          <button class="start-card" type="button" data-start-workflow="ensaio">
+            <span class="icon">✓</span>
+            <span><strong>Cadastrar resultado de ensaio de dormente</strong><span>Registrar aprovação, reprovação, iAuditor e fechar a série ativa.</span></span>
+          </button>
+
+          <button class="start-card" type="button" data-start-workflow="slump">
+            <span class="icon">⌁</span>
+            <span><strong>Registrar slump test</strong><span>Ir direto aos campos de abatimento e espalhamento do concreto fresco.</span></span>
+          </button>
+
+          <button class="start-card" type="button" data-tab-target="lotes">
+            <span class="icon">☷</span>
+            <span><strong>Consultar lotes</strong><span>Pesquisar por lote, pedido, fábrica, projeto, ombreira ou status.</span></span>
+          </button>
+
+          <button class="start-card" type="button" data-tab-target="painel">
+            <span class="icon">▣</span>
+            <span><strong>Ver painel e alertas</strong><span>Acompanhar séries, limites de 2.000 dormentes ou 10 lotes e pendências.</span></span>
+          </button>
+
+          <label class="start-card" for="importCsvStart">
+            <span class="icon">↥</span>
+            <span><strong>Importar CSV da planilha</strong><span>Trazer dados da planilha e recalcular séries automaticamente.</span></span>
+          </label>
+          <input type="file" id="importCsvStart" accept=".csv,text/csv" style="display:none" />
+        </div>
+      </div>
+    </section>
+
+    <section id="painel" class="view">
       <div class="kpi-grid" id="kpiGrid"></div>
 
       <div class="section-card">
@@ -1103,7 +1244,7 @@
       factories: load(STORAGE_KEYS.factories, DEFAULT_FACTORIES),
       projects: load(STORAGE_KEYS.projects, DEFAULT_PROJECTS),
       config: load(STORAGE_KEYS.config, DEFAULT_CONFIG),
-      activeTab: "painel",
+      activeTab: "inicio",
       editingId: null,
       form: { ...EMPTY_LOT },
       selectedGroupKey: null,
@@ -2259,9 +2400,47 @@
       showToast("Lotes e ensaios apagados.");
     }
 
+    function focusFormField(fieldKey) {
+      setTimeout(() => {
+        const input = document.querySelector(`[data-field="${fieldKey}"]`);
+        if (!input) return;
+        const section = input.closest(".form-section");
+        if (section) {
+          section.scrollIntoView({ behavior: "smooth", block: "start" });
+          section.classList.add("focus-section");
+          setTimeout(() => section.classList.remove("focus-section"), 2200);
+        }
+        input.focus();
+      }, 180);
+    }
+
+    function startWorkflow(workflow) {
+      if (workflow === "ensaio") {
+        const groups = getGroups();
+        if (!groups.length) {
+          switchTab("painel");
+          showToast("Cadastre lotes para iniciar uma série antes de registrar ensaio.");
+          return;
+        }
+        const group = groups.find(item => item.alert.level === "ENSAIAR AGORA") || groups[0];
+        switchTab("painel");
+        setTimeout(() => openTestModal(group.key), 220);
+        return;
+      }
+
+      if (workflow === "slump") {
+        state.editingId = null;
+        state.form = { ...EMPTY_LOT };
+        switchTab("cadastro");
+        focusFormField("slumpStartDrop");
+        showToast("Preencha os campos de slump no controle do concreto fresco.");
+      }
+    }
+
     function bindEvents() {
       document.querySelectorAll(".tab-btn").forEach(btn => btn.addEventListener("click", () => switchTab(btn.dataset.tab)));
       document.querySelectorAll("[data-tab-target]").forEach(btn => btn.addEventListener("click", () => switchTab(btn.dataset.tabTarget)));
+      document.querySelectorAll("[data-start-workflow]").forEach(btn => btn.addEventListener("click", () => startWorkflow(btn.dataset.startWorkflow)));
       document.getElementById("lotForm").addEventListener("submit", saveLot);
       document.getElementById("cancelEditBtn").addEventListener("click", () => {
         state.editingId = null;
@@ -2287,6 +2466,7 @@
       document.getElementById("importBackupInput").addEventListener("change", event => importBackup(event.target.files[0]));
       document.getElementById("importCsvInput").addEventListener("change", event => importCsv(event.target.files[0]));
       document.getElementById("importCsvTop").addEventListener("change", event => importCsv(event.target.files[0]));
+      document.getElementById("importCsvStart").addEventListener("change", event => importCsv(event.target.files[0]));
 
       document.getElementById("saveConfigBtn").addEventListener("click", saveConfig);
       document.getElementById("restoreDemoBtn").addEventListener("click", restoreDemo);
