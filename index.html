@@ -1,1849 +1,1803 @@
-import React, { useMemo, useState } from "react";
-import {
-  AlertTriangle,
-  BarChart3,
-  CheckCircle2,
-  ClipboardList,
-  Download,
-  Edit3,
-  Factory,
-  FileCheck2,
-  Filter,
-  Plus,
-  RefreshCcw,
-  RotateCcw,
-  Save,
-  Search,
-  Settings,
-  ShieldCheck,
-  Trash2,
-  X,
-} from "lucide-react";
-
-const STORAGE_KEYS = {
-  lotes: "rumo-dormentes-lotes-v1",
-  ensaios: "rumo-dormentes-ensaios-v1",
-  fabricas: "rumo-dormentes-fabricas-v1",
-  projetos: "rumo-dormentes-projetos-v1",
-  config: "rumo-dormentes-config-v1",
-};
-
-const DEFAULT_FABRICAS = [
-  { id: "cavan", nome: "Cavan", cidade: "Santa Lúcia", uf: "SP" },
-  { id: "conprem", nome: "Conprem", cidade: "Campanha", uf: "MG" },
-];
-
-const DEFAULT_PROJETOS = [
-  "Malha Paulista Bitola Larga",
-  "Malha Paulista Bitola Mista",
-  "FMT",
-  "Ferronorte",
-];
-
-const DEFAULT_CONFIG = {
-  limiteDormentes: 2000,
-  limiteLotes: 10,
-  avisoDormentes: 1800,
-  avisoLotes: 9,
-};
-
-const STATUS_OPTIONS = [
-  "Aguardando série",
-  "Próximo de ensaio",
-  "Aguardando ensaio",
-  "Série liberada por ensaio",
-  "Série em alerta por reprovação",
-  "Lote/série reprovado",
-  "Bloqueado",
-  "Liberado manualmente",
-];
-
-const RESULTADO_ENSAIO_OPTIONS = [
-  "Aprovado",
-  "Reprovado - manter em alerta",
-  "Reprovado - bloquear série/lote",
-];
-
-const SAMPLE_LOTES = [
-  {
-    id: "lote-1",
-    createdAt: "2026-04-01T09:00:00.000Z",
-    updatedAt: "2026-04-01T09:00:00.000Z",
-    fabricaId: "cavan",
-    pista: "Pista 01",
-    numeroPedido: "450001",
-    lote: "CVN-001/26",
-    projeto: "Malha Paulista Bitola Larga",
-    tipoDormente: "Monobloco protendido",
-    totalProducao: 310,
-    dataFabricacao: "2026-04-01",
-    cura14Dias: "2026-04-15",
-    cura28Dias: "2026-04-29",
-    comUsp: "Não",
-    uspLote: "",
-    tipoOmbreiras: "Ombreira elástica",
-    loteOmbreiras: "OMB-101",
-    temperaturaInicial: 24,
-    temperaturaMeio: 25,
-    temperaturaFinal: 26,
-    slumpInicioAbatimento: 230,
-    slumpInicioEspalhamento: "",
-    slumpMeioAbatimento: 225,
-    slumpMeioEspalhamento: "",
-    slumpFimAbatimento: 235,
-    slumpFimEspalhamento: "",
-    desprontensaoInicio: "",
-    desprontensaoMeio: "",
-    desprontensaoFim: "",
-    tempoCuraHoras: "",
-    ruptura7Comp: "",
-    ruptura14Comp: "",
-    ruptura14Tracao: "",
-    ruptura28Comp: "",
-    ruptura28Tracao: "",
-    compAxial7: "",
-    compAxial14: "",
-    tracaoFlexao14: "",
-    compAxial28: "",
-    tracaoFlexao28: "",
-    serieEnsaioLiberacao: "",
-    ensaioIAuditor: "",
-    dormentesEnsaiados: "",
-    dormentesASeremAnalisados: "",
-    dormentesReprovados: "",
-    totalProducaoAprovado: 310,
-    status: "Aguardando série",
-    motivoEspecificacao: "",
-    ciclo: 1,
-  },
-  {
-    id: "lote-2",
-    createdAt: "2026-04-02T09:00:00.000Z",
-    updatedAt: "2026-04-02T09:00:00.000Z",
-    fabricaId: "cavan",
-    pista: "Pista 02",
-    numeroPedido: "450001",
-    lote: "CVN-002/26",
-    projeto: "Malha Paulista Bitola Larga",
-    tipoDormente: "Monobloco protendido",
-    totalProducao: 295,
-    dataFabricacao: "2026-04-02",
-    cura14Dias: "2026-04-16",
-    cura28Dias: "2026-04-30",
-    comUsp: "Não",
-    uspLote: "",
-    tipoOmbreiras: "Ombreira elástica",
-    loteOmbreiras: "OMB-101",
-    temperaturaInicial: 23,
-    temperaturaMeio: 25,
-    temperaturaFinal: 26,
-    slumpInicioAbatimento: 225,
-    slumpInicioEspalhamento: "",
-    slumpMeioAbatimento: 230,
-    slumpMeioEspalhamento: "",
-    slumpFimAbatimento: 228,
-    slumpFimEspalhamento: "",
-    desprontensaoInicio: "",
-    desprontensaoMeio: "",
-    desprontensaoFim: "",
-    tempoCuraHoras: "",
-    ruptura7Comp: "",
-    ruptura14Comp: "",
-    ruptura14Tracao: "",
-    ruptura28Comp: "",
-    ruptura28Tracao: "",
-    compAxial7: "",
-    compAxial14: "",
-    tracaoFlexao14: "",
-    compAxial28: "",
-    tracaoFlexao28: "",
-    serieEnsaioLiberacao: "",
-    ensaioIAuditor: "",
-    dormentesEnsaiados: "",
-    dormentesASeremAnalisados: "",
-    dormentesReprovados: "",
-    totalProducaoAprovado: 295,
-    status: "Aguardando série",
-    motivoEspecificacao: "",
-    ciclo: 1,
-  },
-  {
-    id: "lote-3",
-    createdAt: "2026-04-03T09:00:00.000Z",
-    updatedAt: "2026-04-03T09:00:00.000Z",
-    fabricaId: "cavan",
-    pista: "Pista 03",
-    numeroPedido: "450001",
-    lote: "CVN-003/26",
-    projeto: "Malha Paulista Bitola Larga",
-    tipoDormente: "Monobloco protendido",
-    totalProducao: 325,
-    dataFabricacao: "2026-04-03",
-    cura14Dias: "2026-04-17",
-    cura28Dias: "2026-05-01",
-    comUsp: "Não",
-    uspLote: "",
-    tipoOmbreiras: "Ombreira elástica",
-    loteOmbreiras: "OMB-102",
-    temperaturaInicial: 24,
-    temperaturaMeio: 24,
-    temperaturaFinal: 25,
-    slumpInicioAbatimento: 232,
-    slumpInicioEspalhamento: "",
-    slumpMeioAbatimento: 229,
-    slumpMeioEspalhamento: "",
-    slumpFimAbatimento: 231,
-    slumpFimEspalhamento: "",
-    desprontensaoInicio: "",
-    desprontensaoMeio: "",
-    desprontensaoFim: "",
-    tempoCuraHoras: "",
-    ruptura7Comp: "",
-    ruptura14Comp: "",
-    ruptura14Tracao: "",
-    ruptura28Comp: "",
-    ruptura28Tracao: "",
-    compAxial7: "",
-    compAxial14: "",
-    tracaoFlexao14: "",
-    compAxial28: "",
-    tracaoFlexao28: "",
-    serieEnsaioLiberacao: "",
-    ensaioIAuditor: "",
-    dormentesEnsaiados: "",
-    dormentesASeremAnalisados: "",
-    dormentesReprovados: "",
-    totalProducaoAprovado: 325,
-    status: "Aguardando série",
-    motivoEspecificacao: "",
-    ciclo: 1,
-  },
-  {
-    id: "lote-4",
-    createdAt: "2026-04-04T09:00:00.000Z",
-    updatedAt: "2026-04-04T09:00:00.000Z",
-    fabricaId: "cavan",
-    pista: "Pista 04",
-    numeroPedido: "450001",
-    lote: "CVN-004/26",
-    projeto: "Malha Paulista Bitola Larga",
-    tipoDormente: "Monobloco protendido",
-    totalProducao: 330,
-    dataFabricacao: "2026-04-04",
-    cura14Dias: "2026-04-18",
-    cura28Dias: "2026-05-02",
-    comUsp: "Não",
-    uspLote: "",
-    tipoOmbreiras: "Ombreira elástica",
-    loteOmbreiras: "OMB-102",
-    temperaturaInicial: 24,
-    temperaturaMeio: 25,
-    temperaturaFinal: 27,
-    slumpInicioAbatimento: 235,
-    slumpInicioEspalhamento: "",
-    slumpMeioAbatimento: 230,
-    slumpMeioEspalhamento: "",
-    slumpFimAbatimento: 233,
-    slumpFimEspalhamento: "",
-    desprontensaoInicio: "",
-    desprontensaoMeio: "",
-    desprontensaoFim: "",
-    tempoCuraHoras: "",
-    ruptura7Comp: "",
-    ruptura14Comp: "",
-    ruptura14Tracao: "",
-    ruptura28Comp: "",
-    ruptura28Tracao: "",
-    compAxial7: "",
-    compAxial14: "",
-    tracaoFlexao14: "",
-    compAxial28: "",
-    tracaoFlexao28: "",
-    serieEnsaioLiberacao: "",
-    ensaioIAuditor: "",
-    dormentesEnsaiados: "",
-    dormentesASeremAnalisados: "",
-    dormentesReprovados: "",
-    totalProducaoAprovado: 330,
-    status: "Aguardando série",
-    motivoEspecificacao: "",
-    ciclo: 1,
-  },
-  {
-    id: "lote-5",
-    createdAt: "2026-04-05T09:00:00.000Z",
-    updatedAt: "2026-04-05T09:00:00.000Z",
-    fabricaId: "cavan",
-    pista: "Pista 05",
-    numeroPedido: "450001",
-    lote: "CVN-005/26",
-    projeto: "Malha Paulista Bitola Larga",
-    tipoDormente: "Monobloco protendido",
-    totalProducao: 315,
-    dataFabricacao: "2026-04-05",
-    cura14Dias: "2026-04-19",
-    cura28Dias: "2026-05-03",
-    comUsp: "Não",
-    uspLote: "",
-    tipoOmbreiras: "Ombreira elástica",
-    loteOmbreiras: "OMB-103",
-    temperaturaInicial: 23,
-    temperaturaMeio: 25,
-    temperaturaFinal: 26,
-    slumpInicioAbatimento: 224,
-    slumpInicioEspalhamento: "",
-    slumpMeioAbatimento: 228,
-    slumpMeioEspalhamento: "",
-    slumpFimAbatimento: 226,
-    slumpFimEspalhamento: "",
-    desprontensaoInicio: "",
-    desprontensaoMeio: "",
-    desprontensaoFim: "",
-    tempoCuraHoras: "",
-    ruptura7Comp: "",
-    ruptura14Comp: "",
-    ruptura14Tracao: "",
-    ruptura28Comp: "",
-    ruptura28Tracao: "",
-    compAxial7: "",
-    compAxial14: "",
-    tracaoFlexao14: "",
-    compAxial28: "",
-    tracaoFlexao28: "",
-    serieEnsaioLiberacao: "",
-    ensaioIAuditor: "",
-    dormentesEnsaiados: "",
-    dormentesASeremAnalisados: "",
-    dormentesReprovados: "",
-    totalProducaoAprovado: 315,
-    status: "Aguardando série",
-    motivoEspecificacao: "",
-    ciclo: 1,
-  },
-  {
-    id: "lote-6",
-    createdAt: "2026-04-06T09:00:00.000Z",
-    updatedAt: "2026-04-06T09:00:00.000Z",
-    fabricaId: "cavan",
-    pista: "Pista 06",
-    numeroPedido: "450001",
-    lote: "CVN-006/26",
-    projeto: "Malha Paulista Bitola Larga",
-    tipoDormente: "Monobloco protendido",
-    totalProducao: 305,
-    dataFabricacao: "2026-04-06",
-    cura14Dias: "2026-04-20",
-    cura28Dias: "2026-05-04",
-    comUsp: "Não",
-    uspLote: "",
-    tipoOmbreiras: "Ombreira elástica",
-    loteOmbreiras: "OMB-103",
-    temperaturaInicial: 23,
-    temperaturaMeio: 24,
-    temperaturaFinal: 26,
-    slumpInicioAbatimento: 226,
-    slumpInicioEspalhamento: "",
-    slumpMeioAbatimento: 231,
-    slumpMeioEspalhamento: "",
-    slumpFimAbatimento: 227,
-    slumpFimEspalhamento: "",
-    desprontensaoInicio: "",
-    desprontensaoMeio: "",
-    desprontensaoFim: "",
-    tempoCuraHoras: "",
-    ruptura7Comp: "",
-    ruptura14Comp: "",
-    ruptura14Tracao: "",
-    ruptura28Comp: "",
-    ruptura28Tracao: "",
-    compAxial7: "",
-    compAxial14: "",
-    tracaoFlexao14: "",
-    compAxial28: "",
-    tracaoFlexao28: "",
-    serieEnsaioLiberacao: "",
-    ensaioIAuditor: "",
-    dormentesEnsaiados: "",
-    dormentesASeremAnalisados: "",
-    dormentesReprovados: "",
-    totalProducaoAprovado: 305,
-    status: "Aguardando série",
-    motivoEspecificacao: "",
-    ciclo: 1,
-  },
-  {
-    id: "lote-7",
-    createdAt: "2026-04-07T09:00:00.000Z",
-    updatedAt: "2026-04-07T09:00:00.000Z",
-    fabricaId: "cavan",
-    pista: "Pista 07",
-    numeroPedido: "450001",
-    lote: "CVN-007/26",
-    projeto: "Malha Paulista Bitola Larga",
-    tipoDormente: "Monobloco protendido",
-    totalProducao: 300,
-    dataFabricacao: "2026-04-07",
-    cura14Dias: "2026-04-21",
-    cura28Dias: "2026-05-05",
-    comUsp: "Não",
-    uspLote: "",
-    tipoOmbreiras: "Ombreira elástica",
-    loteOmbreiras: "OMB-104",
-    temperaturaInicial: 24,
-    temperaturaMeio: 25,
-    temperaturaFinal: 26,
-    slumpInicioAbatimento: 230,
-    slumpInicioEspalhamento: "",
-    slumpMeioAbatimento: 229,
-    slumpMeioEspalhamento: "",
-    slumpFimAbatimento: 232,
-    slumpFimEspalhamento: "",
-    desprontensaoInicio: "",
-    desprontensaoMeio: "",
-    desprontensaoFim: "",
-    tempoCuraHoras: "",
-    ruptura7Comp: "",
-    ruptura14Comp: "",
-    ruptura14Tracao: "",
-    ruptura28Comp: "",
-    ruptura28Tracao: "",
-    compAxial7: "",
-    compAxial14: "",
-    tracaoFlexao14: "",
-    compAxial28: "",
-    tracaoFlexao28: "",
-    serieEnsaioLiberacao: "",
-    ensaioIAuditor: "",
-    dormentesEnsaiados: "",
-    dormentesASeremAnalisados: "",
-    dormentesReprovados: "",
-    totalProducaoAprovado: 300,
-    status: "Aguardando ensaio",
-    motivoEspecificacao: "A série ultrapassou 2.000 dormentes.",
-    ciclo: 1,
-  },
-  {
-    id: "lote-8",
-    createdAt: "2026-04-03T09:00:00.000Z",
-    updatedAt: "2026-04-03T09:00:00.000Z",
-    fabricaId: "conprem",
-    pista: "Pista A",
-    numeroPedido: "460010",
-    lote: "CPM-001/26",
-    projeto: "Ferronorte",
-    tipoDormente: "Concreto protendido",
-    totalProducao: 285,
-    dataFabricacao: "2026-04-03",
-    cura14Dias: "2026-04-17",
-    cura28Dias: "2026-05-01",
-    comUsp: "Sim",
-    uspLote: "USP-FN-01",
-    tipoOmbreiras: "Ombreira fundida",
-    loteOmbreiras: "OMB-FN-01",
-    temperaturaInicial: 22,
-    temperaturaMeio: 24,
-    temperaturaFinal: 25,
-    slumpInicioAbatimento: 231,
-    slumpInicioEspalhamento: "",
-    slumpMeioAbatimento: 230,
-    slumpMeioEspalhamento: "",
-    slumpFimAbatimento: 228,
-    slumpFimEspalhamento: "",
-    desprontensaoInicio: "",
-    desprontensaoMeio: "",
-    desprontensaoFim: "",
-    tempoCuraHoras: "",
-    ruptura7Comp: "",
-    ruptura14Comp: "",
-    ruptura14Tracao: "",
-    ruptura28Comp: "",
-    ruptura28Tracao: "",
-    compAxial7: "",
-    compAxial14: "",
-    tracaoFlexao14: "",
-    compAxial28: "",
-    tracaoFlexao28: "",
-    serieEnsaioLiberacao: "",
-    ensaioIAuditor: "",
-    dormentesEnsaiados: "",
-    dormentesASeremAnalisados: "",
-    dormentesReprovados: "",
-    totalProducaoAprovado: 285,
-    status: "Aguardando série",
-    motivoEspecificacao: "",
-    ciclo: 1,
-  },
-  {
-    id: "lote-9",
-    createdAt: "2026-04-04T09:00:00.000Z",
-    updatedAt: "2026-04-04T09:00:00.000Z",
-    fabricaId: "conprem",
-    pista: "Pista B",
-    numeroPedido: "460010",
-    lote: "CPM-002/26",
-    projeto: "Ferronorte",
-    tipoDormente: "Concreto protendido",
-    totalProducao: 290,
-    dataFabricacao: "2026-04-04",
-    cura14Dias: "2026-04-18",
-    cura28Dias: "2026-05-02",
-    comUsp: "Sim",
-    uspLote: "USP-FN-01",
-    tipoOmbreiras: "Ombreira fundida",
-    loteOmbreiras: "OMB-FN-01",
-    temperaturaInicial: 23,
-    temperaturaMeio: 24,
-    temperaturaFinal: 25,
-    slumpInicioAbatimento: 229,
-    slumpInicioEspalhamento: "",
-    slumpMeioAbatimento: 232,
-    slumpMeioEspalhamento: "",
-    slumpFimAbatimento: 230,
-    slumpFimEspalhamento: "",
-    desprontensaoInicio: "",
-    desprontensaoMeio: "",
-    desprontensaoFim: "",
-    tempoCuraHoras: "",
-    ruptura7Comp: "",
-    ruptura14Comp: "",
-    ruptura14Tracao: "",
-    ruptura28Comp: "",
-    ruptura28Tracao: "",
-    compAxial7: "",
-    compAxial14: "",
-    tracaoFlexao14: "",
-    compAxial28: "",
-    tracaoFlexao28: "",
-    serieEnsaioLiberacao: "",
-    ensaioIAuditor: "",
-    dormentesEnsaiados: "",
-    dormentesASeremAnalisados: "",
-    dormentesReprovados: "",
-    totalProducaoAprovado: 290,
-    status: "Aguardando série",
-    motivoEspecificacao: "",
-    ciclo: 1,
-  },
-];
-
-const emptyLote = {
-  fabricaId: "cavan",
-  pista: "",
-  numeroPedido: "",
-  lote: "",
-  projeto: "Malha Paulista Bitola Larga",
-  tipoDormente: "",
-  totalProducao: 300,
-  dataFabricacao: "",
-  cura14Dias: "",
-  cura28Dias: "",
-  comUsp: "Não",
-  uspLote: "",
-  tipoOmbreiras: "",
-  loteOmbreiras: "",
-  temperaturaInicial: "",
-  temperaturaMeio: "",
-  temperaturaFinal: "",
-  slumpInicioAbatimento: "",
-  slumpInicioEspalhamento: "",
-  slumpMeioAbatimento: "",
-  slumpMeioEspalhamento: "",
-  slumpFimAbatimento: "",
-  slumpFimEspalhamento: "",
-  desprontensaoInicio: "",
-  desprontensaoMeio: "",
-  desprontensaoFim: "",
-  tempoCuraHoras: "",
-  ruptura7Comp: "",
-  ruptura14Comp: "",
-  ruptura14Tracao: "",
-  ruptura28Comp: "",
-  ruptura28Tracao: "",
-  compAxial7: "",
-  compAxial14: "",
-  tracaoFlexao14: "",
-  compAxial28: "",
-  tracaoFlexao28: "",
-  serieEnsaioLiberacao: "",
-  ensaioIAuditor: "",
-  dormentesEnsaiados: "",
-  dormentesASeremAnalisados: "",
-  dormentesReprovados: "",
-  totalProducaoAprovado: "",
-  status: "Aguardando série",
-  motivoEspecificacao: "",
-};
-
-const FORM_SECTIONS = [
-  {
-    title: "1. Identificação do lote",
-    description: "Dados principais para rastreabilidade e agrupamento da série.",
-    fields: [
-      { key: "fabricaId", label: "Fábrica", type: "factory", required: true },
-      { key: "projeto", label: "Projeto", type: "project", required: true },
-      { key: "pista", label: "Pista", type: "text", placeholder: "Ex.: Pista 01" },
-      { key: "numeroPedido", label: "N° pedido", type: "text", placeholder: "Ex.: 450001" },
-      { key: "lote", label: "Lote", type: "text", required: true, placeholder: "Ex.: CVN-008/26" },
-      { key: "tipoDormente", label: "Tipo de dormente", type: "text", placeholder: "Ex.: monobloco protendido" },
-      { key: "totalProducao", label: "Total da produção", type: "number", required: true },
-      { key: "dataFabricacao", label: "Data de fabricação", type: "date" },
-      { key: "cura14Dias", label: "Cura 14 dias", type: "date" },
-      { key: "cura28Dias", label: "Cura 28 dias", type: "date" },
-    ],
-  },
-  {
-    title: "2. USP e ombreiras",
-    description: "Rastreabilidade dos subcomponentes aplicados no lote.",
-    fields: [
-      { key: "comUsp", label: "Com USP", type: "select", options: ["Sim", "Não"] },
-      { key: "uspLote", label: "USP (lote)", type: "text" },
-      { key: "tipoOmbreiras", label: "Tipo de ombreiras", type: "text" },
-      { key: "loteOmbreiras", label: "Lote ombreiras", type: "text" },
-    ],
-  },
-  {
-    title: "3. Controle do concreto fresco",
-    description: "Temperatura e slump test por posição da pista.",
-    fields: [
-      { key: "temperaturaInicial", label: "Temperatura °C inicial", type: "number" },
-      { key: "temperaturaMeio", label: "Temperatura °C meio", type: "number" },
-      { key: "temperaturaFinal", label: "Temperatura °C final", type: "number" },
-      { key: "slumpInicioAbatimento", label: "Slump início - abatimento (230 ± 30 mm)", type: "number" },
-      { key: "slumpInicioEspalhamento", label: "Slump início - espalhamento", type: "number" },
-      { key: "slumpMeioAbatimento", label: "Slump meio - abatimento", type: "number" },
-      { key: "slumpMeioEspalhamento", label: "Slump meio - espalhamento", type: "number" },
-      { key: "slumpFimAbatimento", label: "Slump fim - abatimento", type: "number" },
-      { key: "slumpFimEspalhamento", label: "Slump fim - espalhamento", type: "number" },
-    ],
-  },
-  {
-    title: "4. Desprotensão, cura e rupturas",
-    description: "Campos de acompanhamento técnico do lote.",
-    fields: [
-      { key: "desprontensaoInicio", label: "Desprotensão início pista", type: "text" },
-      { key: "desprontensaoMeio", label: "Desprotensão meio pista", type: "text" },
-      { key: "desprontensaoFim", label: "Desprotensão fim pista", type: "text" },
-      { key: "tempoCuraHoras", label: "Tempo de cura (horas)", type: "number" },
-      { key: "ruptura7Comp", label: "Data ruptura 7 dias - comp.", type: "date" },
-      { key: "ruptura14Comp", label: "Data ruptura 14 dias - comp.", type: "date" },
-      { key: "ruptura14Tracao", label: "Data ruptura 14 dias - tração", type: "date" },
-      { key: "ruptura28Comp", label: "Data ruptura 28 dias - comp.", type: "date" },
-      { key: "ruptura28Tracao", label: "Data ruptura 28 dias - tração", type: "date" },
-    ],
-  },
-  {
-    title: "5. Resultados de ensaios",
-    description: "Resultados mecânicos e controle de liberação da série.",
-    fields: [
-      { key: "compAxial7", label: "Comp. axial 7 dias (MPa)", type: "number" },
-      { key: "compAxial14", label: "Comp. axial 14 dias (MPa)", type: "number" },
-      { key: "tracaoFlexao14", label: "Tração na flexão 14 dias", type: "number" },
-      { key: "compAxial28", label: "Comp. axial 28 dias (MPa)", type: "number" },
-      { key: "tracaoFlexao28", label: "Tração na flexão 28 dias", type: "number" },
-      { key: "serieEnsaioLiberacao", label: "Série - ensaio de liberação", type: "text" },
-      { key: "ensaioIAuditor", label: "Ensaio no iAuditor", type: "text" },
-      { key: "dormentesEnsaiados", label: "Dormentes ensaiados", type: "number" },
-      { key: "dormentesASeremAnalisados", label: "Dormentes a serem analisados", type: "number" },
-      { key: "dormentesReprovados", label: "Dormentes reprovados", type: "number" },
-      { key: "totalProducaoAprovado", label: "Total da produção aprovado", type: "number" },
-      { key: "status", label: "Status", type: "status" },
-      { key: "motivoEspecificacao", label: "Motivo / especificação", type: "textarea", full: true },
-    ],
-  },
-];
-
-function useLocalStorageState(key, initialValue) {
-  const [value, setValue] = useState(() => {
-    if (typeof window === "undefined") return initialValue;
-    try {
-      const stored = window.localStorage.getItem(key);
-      return stored ? JSON.parse(stored) : initialValue;
-    } catch {
-      return initialValue;
-    }
-  });
-
-  function updateValue(nextValue) {
-    setValue((current) => {
-      const resolved = typeof nextValue === "function" ? nextValue(current) : nextValue;
-      if (typeof window !== "undefined") {
-        window.localStorage.setItem(key, JSON.stringify(resolved));
-      }
-      return resolved;
-    });
-  }
-
-  return [value, updateValue];
-}
-
-function classNames(...classes) {
-  return classes.filter(Boolean).join(" ");
-}
-
-function toNumber(value) {
-  const num = Number(value);
-  return Number.isFinite(num) ? num : 0;
-}
-
-function todayISO() {
-  return new Date().toISOString().slice(0, 10);
-}
-
-function addDaysISO(dateString, days) {
-  if (!dateString) return "";
-  const [year, month, day] = dateString.split("-").map(Number);
-  const date = new Date(Date.UTC(year, month - 1, day));
-  date.setUTCDate(date.getUTCDate() + days);
-  return date.toISOString().slice(0, 10);
-}
-
-function makeId(prefix) {
-  return `${prefix}-${Date.now()}-${Math.random().toString(16).slice(2)}`;
-}
-
-function fabricaNome(fabricas, id) {
-  const fabrica = fabricas.find((item) => item.id === id);
-  if (!fabrica) return id || "Fábrica não informada";
-  return `${fabrica.nome} - ${fabrica.cidade}/${fabrica.uf}`;
-}
-
-function getBaseKey(fabricaId, projeto) {
-  return `${fabricaId}__${projeto}`;
-}
-
-function getLastClosedCycle(ensaios, fabricaId, projeto) {
-  const key = getBaseKey(fabricaId, projeto);
-  return ensaios
-    .filter((ensaio) => ensaio.baseKey === key)
-    .reduce((max, ensaio) => Math.max(max, toNumber(ensaio.ciclo)), 0);
-}
-
-function getCurrentCycle(lotes, ensaios, fabricaId, projeto) {
-  const lastClosed = getLastClosedCycle(ensaios, fabricaId, projeto);
-  const activeCycles = lotes
-    .filter((lote) => lote.fabricaId === fabricaId && lote.projeto === projeto && toNumber(lote.ciclo) > lastClosed)
-    .map((lote) => toNumber(lote.ciclo));
-  if (activeCycles.length > 0) return Math.max(...activeCycles);
-  return lastClosed + 1 || 1;
-}
-
-function calculateAlert(totalDormentes, totalLotes, config) {
-  const faltaDormentes = Math.max(0, toNumber(config.limiteDormentes) - totalDormentes);
-  const faltaLotes = Math.max(0, toNumber(config.limiteLotes) - totalLotes);
-  const progressoDormentes = Math.min(100, (totalDormentes / toNumber(config.limiteDormentes)) * 100);
-  const progressoLotes = Math.min(100, (totalLotes / toNumber(config.limiteLotes)) * 100);
-  const progresso = Math.max(progressoDormentes, progressoLotes);
-
-  if (totalDormentes >= toNumber(config.limiteDormentes) || totalLotes >= toNumber(config.limiteLotes)) {
-    return {
-      level: "ENSAIAR AGORA",
-      tone: "danger",
-      card: "border-red-300 bg-red-50 text-red-950",
-      badge: "bg-red-600 text-white",
-      progress: progresso,
-      icon: AlertTriangle,
-      message: `A série atingiu o gatilho: ${config.limiteDormentes} dormentes ou ${config.limiteLotes} lotes, o que ocorrer primeiro.`,
-      faltaDormentes,
-      faltaLotes,
-    };
-  }
-
-  if (totalDormentes >= toNumber(config.avisoDormentes) || totalLotes >= toNumber(config.avisoLotes)) {
-    return {
-      level: "PRÓXIMO DO ENSAIO",
-      tone: "warning",
-      card: "border-amber-300 bg-amber-50 text-amber-950",
-      badge: "bg-amber-500 text-white",
-      progress: progresso,
-      icon: AlertTriangle,
-      message: "A série está próxima do limite. Planeje amostragem, separação e ensaio.",
-      faltaDormentes,
-      faltaLotes,
-    };
-  }
-
-  return {
-    level: "EM ACOMPANHAMENTO",
-    tone: "ok",
-    card: "border-emerald-300 bg-emerald-50 text-emerald-950",
-    badge: "bg-emerald-600 text-white",
-    progress: progresso,
-    icon: CheckCircle2,
-    message: "A série ainda não atingiu a janela de ensaio.",
-    faltaDormentes,
-    faltaLotes,
-  };
-}
-
-function csvEscape(value) {
-  const text = String(value ?? "");
-  if (/[;"\n\r]/.test(text)) return `"${text.replace(/"/g, '""')}"`;
-  return text;
-}
-
-function downloadFile(filename, content, type = "text/plain;charset=utf-8") {
-  const blob = new Blob([content], { type });
-  const url = URL.createObjectURL(blob);
-  const link = document.createElement("a");
-  link.href = url;
-  link.download = filename;
-  document.body.appendChild(link);
-  link.click();
-  document.body.removeChild(link);
-  URL.revokeObjectURL(url);
-}
-
-function statusClass(status) {
-  if (String(status).includes("reprov") || String(status).includes("Bloqueado")) return "bg-red-100 text-red-800";
-  if (String(status).includes("liberada") || String(status).includes("Liberado")) return "bg-emerald-100 text-emerald-800";
-  if (String(status).includes("ensaio") || String(status).includes("Próximo")) return "bg-amber-100 text-amber-800";
-  return "bg-slate-100 text-slate-700";
-}
-
-function FieldRenderer({ field, value, onChange, fabricas, projetos }) {
-  const common =
-    "mt-1 w-full rounded-xl border border-slate-300 bg-white px-3 py-2 text-sm outline-none transition focus:border-slate-950 focus:ring-2 focus:ring-slate-950/10";
-
-  if (field.type === "factory") {
-    return (
-      <select value={value || ""} onChange={(event) => onChange(field.key, event.target.value)} className={common}>
-        {fabricas.map((fabrica) => (
-          <option key={fabrica.id} value={fabrica.id}>
-            {fabrica.nome} - {fabrica.cidade}/{fabrica.uf}
-          </option>
-        ))}
-      </select>
-    );
-  }
-
-  if (field.type === "project") {
-    return (
-      <select value={value || ""} onChange={(event) => onChange(field.key, event.target.value)} className={common}>
-        {projetos.map((projeto) => (
-          <option key={projeto} value={projeto}>
-            {projeto}
-          </option>
-        ))}
-      </select>
-    );
-  }
-
-  if (field.type === "status") {
-    return (
-      <select value={value || ""} onChange={(event) => onChange(field.key, event.target.value)} className={common}>
-        {STATUS_OPTIONS.map((status) => (
-          <option key={status} value={status}>
-            {status}
-          </option>
-        ))}
-      </select>
-    );
-  }
-
-  if (field.type === "select") {
-    return (
-      <select value={value || ""} onChange={(event) => onChange(field.key, event.target.value)} className={common}>
-        {field.options.map((option) => (
-          <option key={option} value={option}>
-            {option}
-          </option>
-        ))}
-      </select>
-    );
-  }
-
-  if (field.type === "textarea") {
-    return (
-      <textarea
-        value={value || ""}
-        onChange={(event) => onChange(field.key, event.target.value)}
-        placeholder={field.placeholder || ""}
-        rows={4}
-        className={classNames(common, "resize-y")}
-      />
-    );
-  }
-
-  return (
-    <input
-      type={field.type || "text"}
-      value={value ?? ""}
-      onChange={(event) => onChange(field.key, event.target.value)}
-      placeholder={field.placeholder || ""}
-      className={common}
-    />
-  );
-}
-
-export default function App() {
-  const [lotes, setLotes] = useLocalStorageState(STORAGE_KEYS.lotes, SAMPLE_LOTES);
-  const [ensaios, setEnsaios] = useLocalStorageState(STORAGE_KEYS.ensaios, []);
-  const [fabricas, setFabricas] = useLocalStorageState(STORAGE_KEYS.fabricas, DEFAULT_FABRICAS);
-  const [projetos, setProjetos] = useLocalStorageState(STORAGE_KEYS.projetos, DEFAULT_PROJETOS);
-  const [config, setConfig] = useLocalStorageState(STORAGE_KEYS.config, DEFAULT_CONFIG);
-
-  const [activeTab, setActiveTab] = useState("painel");
-  const [form, setForm] = useState(emptyLote);
-  const [editingId, setEditingId] = useState(null);
-  const [query, setQuery] = useState("");
-  const [fabricaFiltro, setFabricaFiltro] = useState("todas");
-  const [projetoFiltro, setProjetoFiltro] = useState("todos");
-  const [statusFiltro, setStatusFiltro] = useState("todos");
-  const [selectedGroup, setSelectedGroup] = useState(null);
-  const [ensaioForm, setEnsaioForm] = useState({
-    resultado: "Aprovado",
-    serieEnsaioLiberacao: "",
-    ensaioIAuditor: "",
-    dormentesEnsaiados: "",
-    dormentesReprovados: "",
-    motivo: "",
-  });
-  const [newFactory, setNewFactory] = useState({ nome: "", cidade: "", uf: "" });
-  const [newProject, setNewProject] = useState("");
-
-  const grupos = useMemo(() => {
-    const map = new Map();
-
-    for (const lote of lotes) {
-      const lastClosed = getLastClosedCycle(ensaios, lote.fabricaId, lote.projeto);
-      if (toNumber(lote.ciclo) <= lastClosed) continue;
-
-      const key = `${lote.fabricaId}__${lote.projeto}__${lote.ciclo}`;
-      if (!map.has(key)) {
-        map.set(key, {
-          key,
-          fabricaId: lote.fabricaId,
-          projeto: lote.projeto,
-          ciclo: lote.ciclo,
-          lotes: [],
-          totalDormentes: 0,
-          totalAprovado: 0,
-        });
-      }
-      const grupo = map.get(key);
-      grupo.lotes.push(lote);
-      grupo.totalDormentes += toNumber(lote.totalProducao);
-      grupo.totalAprovado += toNumber(lote.totalProducaoAprovado || lote.totalProducao);
+<!doctype html>
+<html lang="pt-BR">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Controle de Inspeção de Dormentes</title>
+  <style>
+    :root {
+      --bg: #f4f7f6;
+      --panel: #ffffff;
+      --ink: #10201e;
+      --muted: #62706d;
+      --line: #dce5e2;
+      --deep: #063c3a;
+      --deep-2: #092f30;
+      --green: #007a68;
+      --green-2: #00a98f;
+      --mint: #e6f5f1;
+      --orange: #f58220;
+      --orange-2: #ffb56b;
+      --red: #c62828;
+      --red-bg: #fff0f0;
+      --amber: #a76500;
+      --amber-bg: #fff6df;
+      --ok: #0b7a52;
+      --ok-bg: #eaf8f1;
+      --shadow: 0 18px 55px rgba(6, 60, 58, .10);
+      --radius: 22px;
     }
 
-    return Array.from(map.values())
-      .map((grupo) => ({
-        ...grupo,
-        alert: calculateAlert(grupo.totalDormentes, grupo.lotes.length, config),
-      }))
-      .sort((a, b) => {
-        const priority = { "ENSAIAR AGORA": 0, "PRÓXIMO DO ENSAIO": 1, "EM ACOMPANHAMENTO": 2 };
-        return priority[a.alert.level] - priority[b.alert.level] || b.totalDormentes - a.totalDormentes;
-      });
-  }, [lotes, ensaios, config]);
+    * { box-sizing: border-box; }
 
-  const filteredLotes = useMemo(() => {
-    const term = query.trim().toLowerCase();
-    return lotes.filter((lote) => {
-      const allText = [
-        lote.lote,
-        lote.numeroPedido,
-        lote.pista,
-        lote.projeto,
-        lote.tipoDormente,
-        lote.tipoOmbreiras,
-        lote.loteOmbreiras,
-        lote.status,
-        lote.motivoEspecificacao,
-        fabricaNome(fabricas, lote.fabricaId),
-      ]
-        .join(" ")
-        .toLowerCase();
-
-      const matchText = !term || allText.includes(term);
-      const matchFactory = fabricaFiltro === "todas" || lote.fabricaId === fabricaFiltro;
-      const matchProject = projetoFiltro === "todos" || lote.projeto === projetoFiltro;
-      const matchStatus = statusFiltro === "todos" || lote.status === statusFiltro;
-      return matchText && matchFactory && matchProject && matchStatus;
-    });
-  }, [lotes, query, fabricaFiltro, projetoFiltro, statusFiltro, fabricas]);
-
-  const totals = useMemo(() => {
-    const totalDormentes = lotes.reduce((sum, lote) => sum + toNumber(lote.totalProducao), 0);
-    const totalAprovado = lotes.reduce((sum, lote) => sum + toNumber(lote.totalProducaoAprovado || 0), 0);
-    const gruposCriticos = grupos.filter((grupo) => grupo.alert.level === "ENSAIAR AGORA").length;
-    const gruposProximos = grupos.filter((grupo) => grupo.alert.level === "PRÓXIMO DO ENSAIO").length;
-    return {
-      lotes: lotes.length,
-      totalDormentes,
-      totalAprovado,
-      ensaios: ensaios.length,
-      gruposCriticos,
-      gruposProximos,
-      gruposAtivos: grupos.length,
-    };
-  }, [lotes, ensaios, grupos]);
-
-  function updateForm(key, value) {
-    setForm((current) => {
-      const next = { ...current, [key]: value };
-      if (key === "dataFabricacao") {
-        if (!current.cura14Dias) next.cura14Dias = addDaysISO(value, 14);
-        if (!current.cura28Dias) next.cura28Dias = addDaysISO(value, 28);
-        if (!current.ruptura7Comp) next.ruptura7Comp = addDaysISO(value, 7);
-        if (!current.ruptura14Comp) next.ruptura14Comp = addDaysISO(value, 14);
-        if (!current.ruptura14Tracao) next.ruptura14Tracao = addDaysISO(value, 14);
-        if (!current.ruptura28Comp) next.ruptura28Comp = addDaysISO(value, 28);
-        if (!current.ruptura28Tracao) next.ruptura28Tracao = addDaysISO(value, 28);
-      }
-      if (key === "totalProducao" && !current.totalProducaoAprovado) {
-        next.totalProducaoAprovado = value;
-      }
-      return next;
-    });
-  }
-
-  function validateForm() {
-    if (!form.fabricaId) return "Informe a fábrica.";
-    if (!form.projeto) return "Informe o projeto.";
-    if (!form.lote) return "Informe o número/código do lote.";
-    if (!form.totalProducao || toNumber(form.totalProducao) <= 0) return "Informe o total da produção.";
-
-    const duplicate = lotes.some((lote) => lote.lote === form.lote && lote.id !== editingId);
-    if (duplicate) return "Já existe um lote cadastrado com esse mesmo código.";
-    return "";
-  }
-
-  function saveLote(event) {
-    event.preventDefault();
-    const error = validateForm();
-    if (error) {
-      alert(error);
-      return;
+    body {
+      margin: 0;
+      font-family: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      color: var(--ink);
+      background:
+        radial-gradient(circle at 10% 0%, rgba(0,169,143,.14), transparent 28rem),
+        linear-gradient(180deg, #f7fbfa 0%, var(--bg) 55%, #eef4f2 100%);
     }
 
-    const now = new Date().toISOString();
-    const normalized = {
-      ...form,
-      totalProducao: toNumber(form.totalProducao),
-      temperaturaInicial: form.temperaturaInicial === "" ? "" : toNumber(form.temperaturaInicial),
-      temperaturaMeio: form.temperaturaMeio === "" ? "" : toNumber(form.temperaturaMeio),
-      temperaturaFinal: form.temperaturaFinal === "" ? "" : toNumber(form.temperaturaFinal),
-      totalProducaoAprovado: form.totalProducaoAprovado === "" ? toNumber(form.totalProducao) : toNumber(form.totalProducaoAprovado),
-      updatedAt: now,
-    };
+    button, input, select, textarea { font: inherit; }
+    button { cursor: pointer; }
+    a { color: inherit; }
 
-    if (editingId) {
-      setLotes((current) =>
-        current.map((lote) => (lote.id === editingId ? { ...lote, ...normalized, id: editingId } : lote))
-      );
-    } else {
-      const ciclo = getCurrentCycle(lotes, ensaios, form.fabricaId, form.projeto);
-      setLotes((current) => [
-        {
-          id: makeId("lote"),
-          createdAt: now,
-          ciclo,
-          ...normalized,
-        },
-        ...current,
-      ]);
+    .shell { max-width: 1440px; margin: 0 auto; padding: 0 22px; }
+
+    .topbar {
+      background: var(--deep);
+      color: #fff;
+      border-bottom: 1px solid rgba(255,255,255,.12);
     }
 
-    setForm({
-      ...emptyLote,
-      fabricaId: form.fabricaId,
-      projeto: form.projeto,
-      tipoDormente: form.tipoDormente,
-      tipoOmbreiras: form.tipoOmbreiras,
-      comUsp: form.comUsp,
-    });
-    setEditingId(null);
-    setActiveTab("painel");
-  }
+    .topbar .shell {
+      min-height: 42px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 18px;
+      font-size: 12px;
+      letter-spacing: .02em;
+      color: rgba(255,255,255,.82);
+    }
 
-  function editLote(lote) {
-    setForm({ ...emptyLote, ...lote });
-    setEditingId(lote.id);
-    setActiveTab("cadastro");
-  }
+    .hero {
+      position: relative;
+      overflow: hidden;
+      color: #fff;
+      background:
+        linear-gradient(135deg, rgba(6,60,58,.98), rgba(4,86,76,.94)),
+        repeating-linear-gradient(115deg, transparent 0 38px, rgba(255,255,255,.045) 38px 40px);
+    }
 
-  function deleteLote(id) {
-    const ok = window.confirm("Deseja excluir este lote? Essa ação remove o registro do painel.");
-    if (!ok) return;
-    setLotes((current) => current.filter((lote) => lote.id !== id));
-  }
+    .hero::before {
+      content: "";
+      position: absolute;
+      inset: auto -10% -34px -10%;
+      height: 110px;
+      background: linear-gradient(90deg, transparent 0%, rgba(245,130,32,.0) 18%, rgba(245,130,32,.8) 18%, rgba(245,130,32,.8) 23%, transparent 23% 100%);
+      transform: skewY(-3deg);
+      opacity: .88;
+    }
 
-  function startEnsaio(group) {
-    setSelectedGroup(group);
-    setEnsaioForm({
-      resultado: "Aprovado",
-      serieEnsaioLiberacao: `${group.projeto} - Ciclo ${group.ciclo}`,
-      ensaioIAuditor: "",
-      dormentesEnsaiados: "",
-      dormentesReprovados: "",
-      motivo: "",
-    });
-  }
+    .hero::after {
+      content: "";
+      position: absolute;
+      width: 520px;
+      height: 520px;
+      border: 1px solid rgba(255,255,255,.12);
+      border-radius: 50%;
+      right: -170px;
+      top: -230px;
+      box-shadow: inset 0 0 0 80px rgba(255,255,255,.025);
+    }
 
-  function registrarEnsaio() {
-    if (!selectedGroup) return;
+    .hero-inner {
+      position: relative;
+      z-index: 1;
+      padding: 28px 0 34px;
+    }
 
-    const now = new Date().toISOString();
-    const resultado = ensaioForm.resultado;
-    const status =
-      resultado === "Aprovado"
-        ? "Série liberada por ensaio"
-        : resultado === "Reprovado - manter em alerta"
-        ? "Série em alerta por reprovação"
-        : "Lote/série reprovado";
+    .brand-row {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 22px;
+      margin-bottom: 30px;
+    }
 
-    const ensaio = {
-      id: makeId("ensaio"),
-      createdAt: now,
-      data: todayISO(),
-      baseKey: getBaseKey(selectedGroup.fabricaId, selectedGroup.projeto),
-      fabricaId: selectedGroup.fabricaId,
-      projeto: selectedGroup.projeto,
-      ciclo: selectedGroup.ciclo,
-      resultado,
-      statusGerado: status,
-      motivo: ensaioForm.motivo,
-      serieEnsaioLiberacao: ensaioForm.serieEnsaioLiberacao,
-      ensaioIAuditor: ensaioForm.ensaioIAuditor,
-      dormentesEnsaiados: ensaioForm.dormentesEnsaiados,
-      dormentesReprovados: ensaioForm.dormentesReprovados,
-      totalDormentes: selectedGroup.totalDormentes,
-      totalLotes: selectedGroup.lotes.length,
-      lotesDaSerie: selectedGroup.lotes.map((lote) => ({ id: lote.id, lote: lote.lote })),
+    .brand {
+      display: flex;
+      align-items: center;
+      gap: 14px;
+    }
+
+    .brand-mark {
+      width: 54px;
+      height: 54px;
+      border-radius: 18px;
+      display: grid;
+      place-items: center;
+      color: #fff;
+      font-weight: 950;
+      background:
+        linear-gradient(135deg, rgba(255,255,255,.22), rgba(255,255,255,.06)),
+        linear-gradient(135deg, var(--orange), var(--green-2));
+      box-shadow: 0 14px 38px rgba(0,0,0,.22);
+      position: relative;
+      overflow: hidden;
+    }
+
+    .brand-mark::before,
+    .brand-mark::after {
+      content: "";
+      position: absolute;
+      width: 80px;
+      height: 4px;
+      background: rgba(255,255,255,.85);
+      transform: rotate(-28deg);
+      left: -14px;
+    }
+    .brand-mark::before { top: 20px; }
+    .brand-mark::after { top: 31px; opacity: .65; }
+
+    .brand-text small {
+      display: block;
+      text-transform: uppercase;
+      letter-spacing: .18em;
+      color: rgba(255,255,255,.62);
+      font-weight: 800;
+      font-size: 11px;
+    }
+
+    .brand-text strong {
+      display: block;
+      font-size: 19px;
+      line-height: 1.1;
+    }
+
+    .hero-actions { display: flex; gap: 10px; flex-wrap: wrap; }
+
+    .hero-grid {
+      display: grid;
+      grid-template-columns: minmax(0, 1.2fr) minmax(300px, .8fr);
+      gap: 28px;
+      align-items: end;
+    }
+
+    .eyebrow {
+      display: inline-flex;
+      align-items: center;
+      gap: 9px;
+      background: rgba(255,255,255,.12);
+      border: 1px solid rgba(255,255,255,.12);
+      border-radius: 999px;
+      padding: 8px 12px;
+      font-size: 13px;
+      color: rgba(255,255,255,.86);
+      font-weight: 750;
+      margin-bottom: 18px;
+    }
+
+    h1 {
+      margin: 0;
+      max-width: 880px;
+      font-size: clamp(32px, 5vw, 64px);
+      letter-spacing: -.055em;
+      line-height: .96;
+      font-weight: 950;
+    }
+
+    .hero p {
+      max-width: 760px;
+      color: rgba(255,255,255,.78);
+      font-size: 16px;
+      line-height: 1.7;
+      margin: 20px 0 0;
+    }
+
+    .rule-card {
+      border-radius: 28px;
+      background: rgba(255,255,255,.09);
+      border: 1px solid rgba(255,255,255,.14);
+      backdrop-filter: blur(12px);
+      padding: 22px;
+      box-shadow: 0 24px 70px rgba(0,0,0,.16);
+    }
+
+    .rule-card h2 { margin: 0 0 8px; font-size: 18px; }
+    .rule-card p { margin: 0; font-size: 14px; line-height: 1.6; color: rgba(255,255,255,.76); }
+
+    .tabs {
+      position: sticky;
+      top: 0;
+      z-index: 20;
+      background: rgba(244,247,246,.86);
+      backdrop-filter: blur(12px);
+      border-bottom: 1px solid rgba(220,229,226,.88);
+    }
+
+    .tabs .shell {
+      display: flex;
+      gap: 10px;
+      overflow-x: auto;
+      padding-top: 12px;
+      padding-bottom: 12px;
+    }
+
+    .tab-btn {
+      border: 1px solid var(--line);
+      background: #fff;
+      color: var(--deep);
+      border-radius: 999px;
+      padding: 10px 16px;
+      font-size: 14px;
+      font-weight: 850;
+      white-space: nowrap;
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      box-shadow: 0 8px 18px rgba(6,60,58,.04);
+      transition: .18s ease;
+    }
+
+    .tab-btn:hover { transform: translateY(-1px); box-shadow: var(--shadow); }
+    .tab-btn.active { background: var(--deep); border-color: var(--deep); color: #fff; }
+
+    main { padding: 28px 0 50px; }
+    .view { display: none; }
+    .view.active { display: block; }
+
+    .kpi-grid {
+      display: grid;
+      grid-template-columns: repeat(6, minmax(0, 1fr));
+      gap: 16px;
+      margin-bottom: 22px;
+    }
+
+    .kpi {
+      background: var(--panel);
+      border: 1px solid var(--line);
+      border-radius: var(--radius);
+      padding: 18px;
+      box-shadow: 0 14px 38px rgba(6,60,58,.05);
+      position: relative;
+      overflow: hidden;
+    }
+
+    .kpi::after {
+      content: "";
+      position: absolute;
+      width: 54px;
+      height: 7px;
+      background: var(--orange);
+      right: -14px;
+      top: 18px;
+      transform: skewX(-28deg);
+      opacity: .85;
+    }
+
+    .kpi.danger::after { background: var(--red); }
+    .kpi small { color: var(--muted); font-weight: 800; font-size: 12px; }
+    .kpi strong { display: block; margin-top: 8px; font-size: 30px; letter-spacing: -.04em; }
+    .kpi.danger strong { color: var(--red); }
+
+    .section-card {
+      background: var(--panel);
+      border: 1px solid var(--line);
+      border-radius: 28px;
+      padding: 22px;
+      box-shadow: var(--shadow);
+    }
+
+    .section-title {
+      display: flex;
+      align-items: flex-end;
+      justify-content: space-between;
+      gap: 20px;
+      margin-bottom: 18px;
+    }
+
+    .section-title h2 { margin: 0; font-size: 26px; letter-spacing: -.03em; }
+    .section-title p { margin: 5px 0 0; color: var(--muted); line-height: 1.55; font-size: 14px; }
+
+    .btn {
+      border: 0;
+      border-radius: 14px;
+      padding: 11px 15px;
+      font-weight: 900;
+      font-size: 14px;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+      transition: .18s ease;
+      text-decoration: none;
+    }
+
+    .btn:hover { transform: translateY(-1px); }
+    .btn-primary { background: var(--deep); color: #fff; }
+    .btn-primary:hover { background: var(--deep-2); }
+    .btn-accent { background: var(--orange); color: #311600; }
+    .btn-light { background: #fff; color: var(--deep); border: 1px solid rgba(255,255,255,.3); }
+    .btn-outline { background: transparent; color: var(--deep); border: 1px solid var(--line); }
+    .btn-danger { background: var(--red-bg); color: var(--red); border: 1px solid #ffc7c7; }
+    .btn-small { padding: 8px 10px; border-radius: 12px; font-size: 12px; }
+
+    .alert-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 16px; }
+
+    .alert-card {
+      border-radius: 24px;
+      border: 1px solid var(--line);
+      padding: 18px;
+      overflow: hidden;
+      position: relative;
+    }
+
+    .alert-card::before {
+      content: "";
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 8px;
+      height: 100%;
+      background: var(--ok);
+    }
+
+    .alert-card.danger { background: var(--red-bg); border-color: #ffc4c4; }
+    .alert-card.warning { background: var(--amber-bg); border-color: #ffe1a3; }
+    .alert-card.ok { background: var(--ok-bg); border-color: #b9ead0; }
+    .alert-card.danger::before { background: var(--red); }
+    .alert-card.warning::before { background: var(--orange); }
+
+    .alert-top { display: flex; justify-content: space-between; align-items: flex-start; gap: 14px; }
+    .alert-top small { display: block; color: var(--muted); font-weight: 850; }
+    .alert-top h3 { margin: 5px 0 0; font-size: 21px; line-height: 1.15; letter-spacing: -.03em; }
+
+    .badge {
+      border-radius: 999px;
+      padding: 7px 10px;
+      font-size: 11px;
+      font-weight: 950;
+      white-space: nowrap;
+      color: #fff;
+      background: var(--ok);
+    }
+    .badge.danger { background: var(--red); }
+    .badge.warning { background: var(--orange); color: #351700; }
+    .badge.gray { background: #edf2f0; color: var(--muted); }
+
+    .progress {
+      height: 11px;
+      border-radius: 999px;
+      background: rgba(255,255,255,.75);
+      overflow: hidden;
+      margin: 14px 0;
+      border: 1px solid rgba(0,0,0,.04);
+    }
+    .progress span { display: block; height: 100%; width: 0; background: var(--ok); border-radius: 999px; }
+    .danger .progress span { background: var(--red); }
+    .warning .progress span { background: var(--orange); }
+
+    .metric-row { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 10px; }
+    .metric { background: rgba(255,255,255,.72); border: 1px solid rgba(0,0,0,.04); border-radius: 18px; padding: 12px; }
+    .metric small { display: block; color: var(--muted); font-weight: 800; font-size: 11px; }
+    .metric strong { display: block; margin-top: 4px; font-size: 24px; letter-spacing: -.04em; }
+
+    .lot-list { margin-top: 14px; background: rgba(255,255,255,.62); border: 1px solid rgba(0,0,0,.04); border-radius: 18px; padding: 12px; font-size: 12px; line-height: 1.7; color: var(--muted); }
+
+    .form-section {
+      background: #fbfdfc;
+      border: 1px solid var(--line);
+      border-radius: 24px;
+      padding: 18px;
+      margin-bottom: 16px;
+    }
+
+    .form-section h3 { margin: 0; font-size: 18px; }
+    .form-section p { margin: 5px 0 15px; color: var(--muted); font-size: 13px; }
+
+    .form-grid { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 14px; }
+    .field.full { grid-column: 1 / -1; }
+    .field label { display: block; font-size: 12px; font-weight: 900; color: #31413f; margin-bottom: 6px; }
+    .required { color: var(--red); }
+
+    input, select, textarea {
+      width: 100%;
+      border: 1px solid #cfdcd8;
+      background: #fff;
+      border-radius: 14px;
+      padding: 11px 12px;
+      color: var(--ink);
+      outline: none;
+      transition: .15s ease;
+    }
+
+    input:focus, select:focus, textarea:focus {
+      border-color: var(--green);
+      box-shadow: 0 0 0 4px rgba(0,122,104,.11);
+    }
+
+    textarea { resize: vertical; min-height: 92px; }
+
+    .form-footer {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 16px;
+      background: var(--deep);
+      color: #fff;
+      border-radius: 22px;
+      padding: 16px;
+      margin-top: 18px;
+    }
+    .form-footer p { margin: 0; color: rgba(255,255,255,.75); font-size: 14px; }
+
+    .filters {
+      display: grid;
+      grid-template-columns: minmax(240px, 2fr) 1fr 1fr 1fr;
+      gap: 12px;
+      margin-top: 16px;
+    }
+
+    .table-wrap {
+      overflow-x: auto;
+      border-radius: 24px;
+      border: 1px solid var(--line);
+      background: #fff;
+      box-shadow: var(--shadow);
+    }
+
+    table { width: 100%; border-collapse: collapse; min-width: 1020px; }
+    th, td { padding: 14px; text-align: left; border-bottom: 1px solid #edf3f1; vertical-align: top; font-size: 13px; }
+    th { background: #f6faf9; color: var(--muted); font-size: 11px; text-transform: uppercase; letter-spacing: .08em; font-weight: 950; }
+    tr:hover td { background: #fbfdfc; }
+    td strong { font-size: 14px; }
+    .muted { color: var(--muted); }
+    .tiny { font-size: 11px; line-height: 1.55; }
+    .actions { display: flex; gap: 8px; }
+
+    .history-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 16px; }
+    .history-card { border: 1px solid var(--line); border-radius: 24px; padding: 18px; background: #fff; box-shadow: 0 12px 32px rgba(6,60,58,.05); }
+    .history-card h3 { margin: 6px 0 4px; font-size: 18px; }
+    .history-card .meta { color: var(--muted); font-size: 12px; line-height: 1.6; }
+
+    .settings-grid { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); gap: 18px; }
+    .mini-list { display: grid; gap: 8px; margin-top: 14px; }
+    .mini-item { display: flex; justify-content: space-between; gap: 10px; align-items: center; padding: 10px 12px; border-radius: 16px; background: #f6faf9; border: 1px solid var(--line); font-size: 13px; }
+    .inline-form { display: grid; gap: 10px; margin-top: 14px; }
+    .inline-form.factory { grid-template-columns: 1fr 1fr 80px auto; }
+    .inline-form.project { grid-template-columns: 1fr auto; }
+    .config-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 14px; margin-top: 16px; }
+
+    .empty {
+      padding: 38px 22px;
+      text-align: center;
+      background: #fbfdfc;
+      border: 1px dashed #c8d8d3;
+      border-radius: 24px;
+      color: var(--muted);
+    }
+    .empty strong { display: block; color: var(--ink); font-size: 18px; margin-bottom: 6px; }
+
+    .modal-backdrop {
+      position: fixed;
+      inset: 0;
+      z-index: 80;
+      background: rgba(3, 24, 24, .70);
+      display: none;
+      align-items: center;
+      justify-content: center;
+      padding: 20px;
+    }
+    .modal-backdrop.show { display: flex; }
+    .modal {
+      width: min(760px, 100%);
+      max-height: 92vh;
+      overflow: auto;
+      background: #fff;
+      border-radius: 30px;
+      padding: 24px;
+      box-shadow: 0 30px 100px rgba(0,0,0,.28);
+    }
+    .modal-head { display: flex; justify-content: space-between; gap: 18px; align-items: flex-start; margin-bottom: 18px; }
+    .modal-head h2 { margin: 0; font-size: 26px; letter-spacing: -.04em; }
+    .modal-head p { margin: 7px 0 0; color: var(--muted); line-height: 1.5; }
+    .modal-summary { border-radius: 22px; background: #f4faf8; border: 1px solid var(--line); padding: 14px; font-size: 13px; line-height: 1.7; margin-bottom: 16px; }
+    .modal-actions { display: flex; justify-content: flex-end; gap: 10px; margin-top: 18px; flex-wrap: wrap; }
+
+    .toast {
+      position: fixed;
+      right: 18px;
+      bottom: 18px;
+      z-index: 100;
+      background: var(--deep);
+      color: #fff;
+      border-radius: 18px;
+      padding: 13px 16px;
+      box-shadow: 0 18px 50px rgba(0,0,0,.22);
+      font-weight: 850;
+      transform: translateY(20px);
+      opacity: 0;
+      pointer-events: none;
+      transition: .2s ease;
+    }
+    .toast.show { transform: translateY(0); opacity: 1; }
+
+    @media (max-width: 1120px) {
+      .hero-grid, .settings-grid { grid-template-columns: 1fr; }
+      .kpi-grid { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+      .alert-grid, .history-grid { grid-template-columns: 1fr; }
+    }
+
+    @media (max-width: 820px) {
+      .brand-row, .section-title, .form-footer { align-items: stretch; flex-direction: column; }
+      .hero-actions { width: 100%; }
+      .hero-actions .btn { flex: 1; }
+      .kpi-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+      .form-grid, .filters, .config-grid, .metric-row { grid-template-columns: 1fr; }
+      .inline-form.factory, .inline-form.project { grid-template-columns: 1fr; }
+      .shell { padding: 0 15px; }
+      .section-card { padding: 17px; border-radius: 22px; }
+    }
+
+    @media (max-width: 520px) {
+      .kpi-grid { grid-template-columns: 1fr; }
+      h1 { font-size: 36px; }
+      .topbar .shell { align-items: flex-start; flex-direction: column; padding-top: 10px; padding-bottom: 10px; gap: 4px; }
+      .modal { padding: 18px; border-radius: 22px; }
+    }
+  </style>
+</head>
+<body>
+  <div class="topbar">
+    <div class="shell">
+      <span>Sistema de apoio à inspeção de dormentes de concreto</span>
+      <span>Foco: Cavan, Conprem e futuras fábricas fornecedoras</span>
+    </div>
+  </div>
+
+  <header class="hero">
+    <div class="shell hero-inner">
+      <div class="brand-row">
+        <div class="brand">
+          <div class="brand-mark">DM</div>
+          <div class="brand-text">
+            <small>Controle técnico</small>
+            <strong>Dormentes & Materiais</strong>
+          </div>
+        </div>
+        <div class="hero-actions">
+          <button class="btn btn-light" id="exportCsvTop">Exportar CSV</button>
+          <button class="btn btn-accent" id="exportBackupTop">Backup JSON</button>
+        </div>
+      </div>
+
+      <div class="hero-grid">
+        <div>
+          <div class="eyebrow">▰ Movimento, rastreabilidade e decisão de ensaio</div>
+          <h1>Painel de lotes e liberação de séries</h1>
+          <p>
+            Cadastre lotes de dormentes por fábrica e projeto, acompanhe a produção acumulada e receba alertas quando a série atingir 2.000 dormentes ou 10 lotes, o que ocorrer primeiro.
+          </p>
+        </div>
+        <div class="rule-card">
+          <h2>Regra automática ativa</h2>
+          <p id="heroRuleText">Carregando regra...</p>
+        </div>
+      </div>
+    </div>
+  </header>
+
+  <nav class="tabs">
+    <div class="shell">
+      <button class="tab-btn active" data-tab="painel">▣ Painel</button>
+      <button class="tab-btn" data-tab="cadastro">＋ Cadastrar lote</button>
+      <button class="tab-btn" data-tab="lotes">☷ Lotes</button>
+      <button class="tab-btn" data-tab="ensaios">✓ Ensaios</button>
+      <button class="tab-btn" data-tab="config">⚙ Configurações</button>
+    </div>
+  </nav>
+
+  <main class="shell">
+    <section id="painel" class="view active">
+      <div class="kpi-grid" id="kpiGrid"></div>
+
+      <div class="section-card">
+        <div class="section-title">
+          <div>
+            <h2>Alertas por fábrica e projeto</h2>
+            <p>Cada cartão representa a série ativa. Quando o ensaio é registrado, a série fecha e a próxima contagem começa do zero.</p>
+          </div>
+          <button class="btn btn-primary" data-tab-target="cadastro">＋ Novo lote</button>
+        </div>
+        <div id="alertsGrid" class="alert-grid"></div>
+      </div>
+    </section>
+
+    <section id="cadastro" class="view">
+      <div class="section-card">
+        <div class="section-title">
+          <div>
+            <h2 id="formTitle">Cadastrar novo lote</h2>
+            <p>Preencha os dados do lote. Os campos de cura e ruptura são sugeridos automaticamente a partir da data de fabricação quando estiverem vazios.</p>
+          </div>
+          <button class="btn btn-outline" id="cancelEditBtn" style="display:none">Cancelar edição</button>
+        </div>
+        <form id="lotForm"></form>
+      </div>
+    </section>
+
+    <section id="lotes" class="view">
+      <div class="section-card" style="margin-bottom:16px">
+        <div class="section-title">
+          <div>
+            <h2>Consulta de lotes</h2>
+            <p>Pesquise por lote, pedido, projeto, ombreira, status ou fábrica.</p>
+          </div>
+          <button class="btn btn-primary" id="exportCsvBtn">Exportar CSV</button>
+        </div>
+        <div class="filters">
+          <input id="searchInput" placeholder="Buscar lote, pedido, ombreira, projeto..." />
+          <select id="filterFactory"></select>
+          <select id="filterProject"></select>
+          <select id="filterStatus"></select>
+        </div>
+      </div>
+      <div class="table-wrap">
+        <table>
+          <thead>
+            <tr>
+              <th>Lote</th>
+              <th>Fábrica</th>
+              <th>Projeto</th>
+              <th>Produção</th>
+              <th>Datas</th>
+              <th>Ombreiras / USP</th>
+              <th>Status</th>
+              <th>Ações</th>
+            </tr>
+          </thead>
+          <tbody id="lotsTableBody"></tbody>
+        </table>
+        <div id="lotsEmpty" class="empty" style="display:none"><strong>Nenhum lote encontrado</strong>Ajuste os filtros ou cadastre novos lotes.</div>
+      </div>
+    </section>
+
+    <section id="ensaios" class="view">
+      <div class="section-card">
+        <div class="section-title">
+          <div>
+            <h2>Histórico de ensaios</h2>
+            <p>Registro das séries já fechadas, com resultado, lotes envolvidos e motivo técnico informado.</p>
+          </div>
+        </div>
+        <div id="historyGrid" class="history-grid"></div>
+      </div>
+    </section>
+
+    <section id="config" class="view">
+      <div class="settings-grid">
+        <div class="section-card">
+          <div class="section-title">
+            <div>
+              <h2>Regras de alerta</h2>
+              <p>Você pode ajustar os limites caso a regra mude no futuro.</p>
+            </div>
+          </div>
+          <div class="config-grid">
+            <div class="field"><label>Limite de dormentes</label><input type="number" id="cfgLimitSleepers" /></div>
+            <div class="field"><label>Limite de lotes</label><input type="number" id="cfgLimitLots" /></div>
+            <div class="field"><label>Aviso a partir de dormentes</label><input type="number" id="cfgWarnSleepers" /></div>
+            <div class="field"><label>Aviso a partir de lotes</label><input type="number" id="cfgWarnLots" /></div>
+          </div>
+          <div class="modal-actions" style="justify-content:flex-start">
+            <button class="btn btn-primary" id="saveConfigBtn">Salvar regras</button>
+            <button class="btn btn-outline" id="restoreDemoBtn">Restaurar exemplo</button>
+            <button class="btn btn-danger" id="clearDataBtn">Apagar lotes e ensaios</button>
+          </div>
+        </div>
+
+        <div class="section-card">
+          <div class="section-title">
+            <div>
+              <h2>Backup e exportação</h2>
+              <p>Use CSV para planilha. Use JSON para guardar um backup completo.</p>
+            </div>
+          </div>
+          <div class="modal-actions" style="justify-content:flex-start">
+            <button class="btn btn-primary" id="exportCsvConfig">Exportar CSV</button>
+            <button class="btn btn-accent" id="exportBackupConfig">Backup JSON</button>
+            <label class="btn btn-outline" for="importBackupInput">Importar JSON</label>
+            <input type="file" id="importBackupInput" accept="application/json" style="display:none" />
+          </div>
+        </div>
+
+        <div class="section-card">
+          <div class="section-title">
+            <div>
+              <h2>Fábricas</h2>
+              <p>Cavan e Conprem já estão cadastradas. Adicione outras quando necessário.</p>
+            </div>
+          </div>
+          <form class="inline-form factory" id="factoryForm">
+            <input id="newFactoryName" placeholder="Nome" />
+            <input id="newFactoryCity" placeholder="Cidade" />
+            <input id="newFactoryUf" placeholder="UF" maxlength="2" />
+            <button class="btn btn-primary">Adicionar</button>
+          </form>
+          <div id="factoryList" class="mini-list"></div>
+        </div>
+
+        <div class="section-card">
+          <div class="section-title">
+            <div>
+              <h2>Projetos</h2>
+              <p>Inclua novos projetos sem alterar o código do site.</p>
+            </div>
+          </div>
+          <form class="inline-form project" id="projectForm">
+            <input id="newProjectName" placeholder="Novo projeto" />
+            <button class="btn btn-primary">Adicionar</button>
+          </form>
+          <div id="projectList" class="mini-list"></div>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <div class="modal-backdrop" id="testModal">
+    <div class="modal">
+      <div class="modal-head">
+        <div>
+          <h2>Registrar ensaio da série</h2>
+          <p id="testModalSubtitle">Fechar série e reiniciar contagem.</p>
+        </div>
+        <button class="btn btn-outline btn-small" id="closeTestModal">Fechar</button>
+      </div>
+      <div class="modal-summary" id="testModalSummary"></div>
+      <form id="testForm">
+        <div class="form-grid">
+          <div class="field full">
+            <label>Resultado do ensaio</label>
+            <select id="testResult">
+              <option>Aprovado</option>
+              <option>Reprovado - manter em alerta</option>
+              <option>Reprovado - bloquear série/lote</option>
+            </select>
+          </div>
+          <div class="field"><label>Série - ensaio de liberação</label><input id="testSeries" /></div>
+          <div class="field"><label>Ensaio no iAuditor</label><input id="testIAuditor" /></div>
+          <div class="field"><label>Dormentes ensaiados</label><input type="number" id="testSleepersTested" /></div>
+          <div class="field"><label>Dormentes reprovados</label><input type="number" id="testSleepersFailed" /></div>
+          <div class="field full"><label>Motivo / especificação</label><textarea id="testReason" placeholder="Descreva aprovação, reprovação, motivo técnico ou especificação violada..."></textarea></div>
+        </div>
+        <div class="modal-actions">
+          <button type="button" class="btn btn-outline" id="cancelTestBtn">Cancelar</button>
+          <button class="btn btn-primary">Fechar série e iniciar novo ciclo</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <div class="toast" id="toast">Salvo.</div>
+
+  <script>
+    const STORAGE_KEYS = {
+      lots: "dm_lots_v2",
+      tests: "dm_tests_v2",
+      factories: "dm_factories_v2",
+      projects: "dm_projects_v2",
+      config: "dm_config_v2"
     };
 
-    setEnsaios((current) => [ensaio, ...current]);
-    setLotes((current) =>
-      current.map((lote) => {
-        const inGroup = selectedGroup.lotes.some((item) => item.id === lote.id);
-        if (!inGroup) return lote;
-        return {
-          ...lote,
-          status,
-          serieEnsaioLiberacao: ensaioForm.serieEnsaioLiberacao || lote.serieEnsaioLiberacao,
-          ensaioIAuditor: ensaioForm.ensaioIAuditor || lote.ensaioIAuditor,
-          dormentesEnsaiados: ensaioForm.dormentesEnsaiados || lote.dormentesEnsaiados,
-          dormentesReprovados: ensaioForm.dormentesReprovados || lote.dormentesReprovados,
-          motivoEspecificacao: ensaioForm.motivo || resultado,
-          updatedAt: now,
-        };
-      })
-    );
+    const DEFAULT_CONFIG = {
+      limitSleepers: 2000,
+      limitLots: 10,
+      warningSleepers: 1800,
+      warningLots: 9
+    };
 
-    setSelectedGroup(null);
-  }
-
-  function exportCsv() {
-    const headers = [
-      "fabrica",
-      "cidade_uf",
-      "pista",
-      "numero_pedido",
-      "lote",
-      "projeto",
-      "tipo_dormente",
-      "total_producao",
-      "data_fabricacao",
-      "cura_14_dias",
-      "cura_28_dias",
-      "com_usp",
-      "usp_lote",
-      "tipo_ombreiras",
-      "lote_ombreiras",
-      "temperatura_inicial",
-      "temperatura_meio",
-      "temperatura_final",
-      "slump_inicio_abatimento",
-      "slump_inicio_espalhamento",
-      "slump_meio_abatimento",
-      "slump_meio_espalhamento",
-      "slump_fim_abatimento",
-      "slump_fim_espalhamento",
-      "desprotensao_inicio",
-      "desprotensao_meio",
-      "desprotensao_fim",
-      "tempo_cura_horas",
-      "ruptura_7_comp",
-      "ruptura_14_comp",
-      "ruptura_14_tracao",
-      "ruptura_28_comp",
-      "ruptura_28_tracao",
-      "comp_axial_7",
-      "comp_axial_14",
-      "tracao_flexao_14",
-      "comp_axial_28",
-      "tracao_flexao_28",
-      "serie_ensaio_liberacao",
-      "ensaio_iauditor",
-      "dormentes_ensaiados",
-      "dormentes_a_serem_analisados",
-      "dormentes_reprovados",
-      "total_producao_aprovado",
-      "status",
-      "motivo_especificacao",
-      "ciclo",
+    const DEFAULT_FACTORIES = [
+      { id: "cavan", name: "Cavan", city: "Santa Lúcia", uf: "SP" },
+      { id: "conprem", name: "Conprem", city: "Campanha", uf: "MG" }
     ];
 
-    const rows = lotes.map((lote) => {
-      const fabrica = fabricas.find((f) => f.id === lote.fabricaId);
-      return [
-        fabrica?.nome || lote.fabricaId,
-        fabrica ? `${fabrica.cidade}/${fabrica.uf}` : "",
-        lote.pista,
-        lote.numeroPedido,
-        lote.lote,
-        lote.projeto,
-        lote.tipoDormente,
-        lote.totalProducao,
-        lote.dataFabricacao,
-        lote.cura14Dias,
-        lote.cura28Dias,
-        lote.comUsp,
-        lote.uspLote,
-        lote.tipoOmbreiras,
-        lote.loteOmbreiras,
-        lote.temperaturaInicial,
-        lote.temperaturaMeio,
-        lote.temperaturaFinal,
-        lote.slumpInicioAbatimento,
-        lote.slumpInicioEspalhamento,
-        lote.slumpMeioAbatimento,
-        lote.slumpMeioEspalhamento,
-        lote.slumpFimAbatimento,
-        lote.slumpFimEspalhamento,
-        lote.desprontensaoInicio,
-        lote.desprontensaoMeio,
-        lote.desprontensaoFim,
-        lote.tempoCuraHoras,
-        lote.ruptura7Comp,
-        lote.ruptura14Comp,
-        lote.ruptura14Tracao,
-        lote.ruptura28Comp,
-        lote.ruptura28Tracao,
-        lote.compAxial7,
-        lote.compAxial14,
-        lote.tracaoFlexao14,
-        lote.compAxial28,
-        lote.tracaoFlexao28,
-        lote.serieEnsaioLiberacao,
-        lote.ensaioIAuditor,
-        lote.dormentesEnsaiados,
-        lote.dormentesASeremAnalisados,
-        lote.dormentesReprovados,
-        lote.totalProducaoAprovado,
-        lote.status,
-        lote.motivoEspecificacao,
-        lote.ciclo,
-      ];
-    });
+    const DEFAULT_PROJECTS = [
+      "Malha Paulista Bitola Larga",
+      "Malha Paulista Bitola Mista",
+      "FMT",
+      "Ferronorte"
+    ];
 
-    const content = [headers, ...rows].map((row) => row.map(csvEscape).join(";")).join("\n");
-    downloadFile(`controle-dormentes-${todayISO()}.csv`, content, "text/csv;charset=utf-8");
-  }
+    const STATUS_OPTIONS = [
+      "Aguardando série",
+      "Próximo de ensaio",
+      "Aguardando ensaio",
+      "Série liberada por ensaio",
+      "Série em alerta por reprovação",
+      "Lote/série reprovado",
+      "Bloqueado",
+      "Liberado manualmente"
+    ];
 
-  function exportBackup() {
-    const backup = {
-      exportedAt: new Date().toISOString(),
-      lotes,
-      ensaios,
-      fabricas,
-      projetos,
-      config,
+    const RESULT_STATUS = {
+      "Aprovado": "Série liberada por ensaio",
+      "Reprovado - manter em alerta": "Série em alerta por reprovação",
+      "Reprovado - bloquear série/lote": "Lote/série reprovado"
     };
-    downloadFile(`backup-controle-dormentes-${todayISO()}.json`, JSON.stringify(backup, null, 2), "application/json;charset=utf-8");
-  }
 
-  function resetDemoData() {
-    const ok = window.confirm("Deseja restaurar os dados de exemplo? Isso substituirá os dados atuais deste navegador.");
-    if (!ok) return;
-    setLotes(SAMPLE_LOTES);
-    setEnsaios([]);
-    setFabricas(DEFAULT_FABRICAS);
-    setProjetos(DEFAULT_PROJETOS);
-    setConfig(DEFAULT_CONFIG);
-  }
+    const FORM_SECTIONS = [
+      {
+        title: "1. Identificação do lote",
+        desc: "Dados principais para rastreabilidade e agrupamento da série.",
+        fields: [
+          { key: "factoryId", label: "Fábrica", type: "factory", required: true },
+          { key: "project", label: "Projeto", type: "project", required: true },
+          { key: "track", label: "Pista", placeholder: "Ex.: Pista 01" },
+          { key: "orderNumber", label: "N° pedido", placeholder: "Ex.: 450001" },
+          { key: "lot", label: "Lote", required: true, placeholder: "Ex.: CVN-008/26" },
+          { key: "sleeperType", label: "Tipo de dormente", placeholder: "Ex.: monobloco protendido" },
+          { key: "productionTotal", label: "Total da produção", type: "number", required: true },
+          { key: "manufactureDate", label: "Data de fabricação", type: "date" },
+          { key: "cure14", label: "Cura 14 dias", type: "date" },
+          { key: "cure28", label: "Cura 28 dias", type: "date" }
+        ]
+      },
+      {
+        title: "2. USP e ombreiras",
+        desc: "Rastreabilidade dos subcomponentes aplicados no lote.",
+        fields: [
+          { key: "hasUsp", label: "Com USP", type: "select", options: ["Não", "Sim"] },
+          { key: "uspLot", label: "USP (lote)" },
+          { key: "shoulderType", label: "Tipo de ombreiras" },
+          { key: "shoulderLot", label: "Lote ombreiras" }
+        ]
+      },
+      {
+        title: "3. Controle do concreto fresco",
+        desc: "Temperatura e slump test por posição da pista.",
+        fields: [
+          { key: "tempStart", label: "Temperatura °C inicial", type: "number" },
+          { key: "tempMiddle", label: "Temperatura °C meio", type: "number" },
+          { key: "tempEnd", label: "Temperatura °C final", type: "number" },
+          { key: "slumpStartDrop", label: "Slump início - abatimento (230 ± 30 mm)", type: "number" },
+          { key: "slumpStartSpread", label: "Slump início - espalhamento", type: "number" },
+          { key: "slumpMiddleDrop", label: "Slump meio - abatimento", type: "number" },
+          { key: "slumpMiddleSpread", label: "Slump meio - espalhamento", type: "number" },
+          { key: "slumpEndDrop", label: "Slump fim - abatimento", type: "number" },
+          { key: "slumpEndSpread", label: "Slump fim - espalhamento", type: "number" }
+        ]
+      },
+      {
+        title: "4. Desprotensão, cura e rupturas",
+        desc: "Campos de acompanhamento técnico do lote.",
+        fields: [
+          { key: "detensionStart", label: "Desprotensão início pista" },
+          { key: "detensionMiddle", label: "Desprotensão meio pista" },
+          { key: "detensionEnd", label: "Desprotensão fim pista" },
+          { key: "cureHours", label: "Tempo de cura (horas)", type: "number" },
+          { key: "break7CompDate", label: "Data ruptura 7 dias - comp.", type: "date" },
+          { key: "break14CompDate", label: "Data ruptura 14 dias - comp.", type: "date" },
+          { key: "break14TractionDate", label: "Data ruptura 14 dias - tração", type: "date" },
+          { key: "break28CompDate", label: "Data ruptura 28 dias - comp.", type: "date" },
+          { key: "break28TractionDate", label: "Data ruptura 28 dias - tração", type: "date" }
+        ]
+      },
+      {
+        title: "5. Resultados e liberação",
+        desc: "Resultados mecânicos, iAuditor, status e motivo técnico.",
+        fields: [
+          { key: "compAxial7", label: "Comp. axial 7 dias (MPa)", type: "number" },
+          { key: "compAxial14", label: "Comp. axial 14 dias (MPa)", type: "number" },
+          { key: "flexTraction14", label: "Tração na flexão 14 dias", type: "number" },
+          { key: "compAxial28", label: "Comp. axial 28 dias (MPa)", type: "number" },
+          { key: "flexTraction28", label: "Tração na flexão 28 dias", type: "number" },
+          { key: "releaseTestSeries", label: "Série - ensaio de liberação" },
+          { key: "iauditorTest", label: "Ensaio no iAuditor" },
+          { key: "testedSleepers", label: "Dormentes ensaiados", type: "number" },
+          { key: "toAnalyzeSleepers", label: "Dormentes a serem analisados", type: "number" },
+          { key: "failedSleepers", label: "Dormentes reprovados", type: "number" },
+          { key: "approvedProductionTotal", label: "Total da produção aprovado", type: "number" },
+          { key: "status", label: "Status", type: "status" },
+          { key: "reason", label: "Motivo / especificação", type: "textarea", full: true }
+        ]
+      }
+    ];
 
-  function clearAllData() {
-    const ok = window.confirm("Deseja apagar todos os lotes e ensaios deste navegador? Exporte um backup antes se precisar guardar os dados.");
-    if (!ok) return;
-    setLotes([]);
-    setEnsaios([]);
-  }
+    const EMPTY_LOT = {
+      factoryId: "cavan",
+      project: "Malha Paulista Bitola Larga",
+      track: "",
+      orderNumber: "",
+      lot: "",
+      sleeperType: "",
+      productionTotal: 300,
+      manufactureDate: "",
+      cure14: "",
+      cure28: "",
+      hasUsp: "Não",
+      uspLot: "",
+      shoulderType: "",
+      shoulderLot: "",
+      tempStart: "",
+      tempMiddle: "",
+      tempEnd: "",
+      slumpStartDrop: "",
+      slumpStartSpread: "",
+      slumpMiddleDrop: "",
+      slumpMiddleSpread: "",
+      slumpEndDrop: "",
+      slumpEndSpread: "",
+      detensionStart: "",
+      detensionMiddle: "",
+      detensionEnd: "",
+      cureHours: "",
+      break7CompDate: "",
+      break14CompDate: "",
+      break14TractionDate: "",
+      break28CompDate: "",
+      break28TractionDate: "",
+      compAxial7: "",
+      compAxial14: "",
+      flexTraction14: "",
+      compAxial28: "",
+      flexTraction28: "",
+      releaseTestSeries: "",
+      iauditorTest: "",
+      testedSleepers: "",
+      toAnalyzeSleepers: "",
+      failedSleepers: "",
+      approvedProductionTotal: "",
+      status: "Aguardando série",
+      reason: ""
+    };
 
-  function addFactory(event) {
-    event.preventDefault();
-    if (!newFactory.nome.trim()) return;
-    const id = newFactory.nome
-      .trim()
-      .toLowerCase()
-      .normalize("NFD")
-      .replace(/[\u0300-\u036f]/g, "")
-      .replace(/[^a-z0-9]+/g, "-")
-      .replace(/(^-|-$)/g, "");
-    const finalId = fabricas.some((f) => f.id === id) ? `${id}-${Date.now()}` : id;
-    setFabricas((current) => [...current, { ...newFactory, id: finalId, uf: newFactory.uf.toUpperCase() }]);
-    setNewFactory({ nome: "", cidade: "", uf: "" });
-  }
+    const SAMPLE_LOTS = [
+      makeSampleLot("lote-1", "cavan", "Pista 01", "450001", "CVN-001/26", "Malha Paulista Bitola Larga", 310, "2026-04-01", "OMB-101"),
+      makeSampleLot("lote-2", "cavan", "Pista 02", "450001", "CVN-002/26", "Malha Paulista Bitola Larga", 295, "2026-04-02", "OMB-101"),
+      makeSampleLot("lote-3", "cavan", "Pista 03", "450001", "CVN-003/26", "Malha Paulista Bitola Larga", 325, "2026-04-03", "OMB-102"),
+      makeSampleLot("lote-4", "cavan", "Pista 04", "450001", "CVN-004/26", "Malha Paulista Bitola Larga", 330, "2026-04-04", "OMB-102"),
+      makeSampleLot("lote-5", "cavan", "Pista 05", "450001", "CVN-005/26", "Malha Paulista Bitola Larga", 315, "2026-04-05", "OMB-103"),
+      makeSampleLot("lote-6", "cavan", "Pista 06", "450001", "CVN-006/26", "Malha Paulista Bitola Larga", 305, "2026-04-06", "OMB-103"),
+      makeSampleLot("lote-7", "cavan", "Pista 07", "450001", "CVN-007/26", "Malha Paulista Bitola Larga", 300, "2026-04-07", "OMB-104", "Aguardando ensaio", "A série ultrapassou 2.000 dormentes."),
+      makeSampleLot("lote-8", "conprem", "Pista A", "460010", "CPM-001/26", "Ferronorte", 285, "2026-04-03", "OMB-FN-01"),
+      makeSampleLot("lote-9", "conprem", "Pista B", "460010", "CPM-002/26", "Ferronorte", 290, "2026-04-04", "OMB-FN-01")
+    ];
 
-  function removeFactory(id) {
-    const inUse = lotes.some((lote) => lote.fabricaId === id);
-    if (inUse) {
-      alert("Não é possível remover uma fábrica que já possui lotes cadastrados.");
-      return;
+    let state = {
+      lots: load(STORAGE_KEYS.lots, SAMPLE_LOTS),
+      tests: load(STORAGE_KEYS.tests, []),
+      factories: load(STORAGE_KEYS.factories, DEFAULT_FACTORIES),
+      projects: load(STORAGE_KEYS.projects, DEFAULT_PROJECTS),
+      config: load(STORAGE_KEYS.config, DEFAULT_CONFIG),
+      activeTab: "painel",
+      editingId: null,
+      form: { ...EMPTY_LOT },
+      selectedGroupKey: null,
+      filters: {
+        search: "",
+        factory: "todas",
+        project: "todos",
+        status: "todos"
+      }
+    };
+
+    function makeSampleLot(id, factoryId, track, orderNumber, lot, project, total, date, shoulderLot, status = "Aguardando série", reason = "") {
+      return {
+        ...EMPTY_LOT,
+        id,
+        createdAt: `${date}T09:00:00.000Z`,
+        updatedAt: `${date}T09:00:00.000Z`,
+        factoryId,
+        track,
+        orderNumber,
+        lot,
+        project,
+        sleeperType: "Monobloco protendido",
+        productionTotal: total,
+        manufactureDate: date,
+        cure14: addDays(date, 14),
+        cure28: addDays(date, 28),
+        shoulderType: factoryId === "conprem" ? "Ombreira fundida" : "Ombreira elástica",
+        shoulderLot,
+        hasUsp: factoryId === "conprem" ? "Sim" : "Não",
+        uspLot: factoryId === "conprem" ? "USP-FN-01" : "",
+        tempStart: 24,
+        tempMiddle: 25,
+        tempEnd: 26,
+        slumpStartDrop: 230,
+        slumpMiddleDrop: 228,
+        slumpEndDrop: 232,
+        approvedProductionTotal: total,
+        status,
+        reason,
+        cycle: 1
+      };
     }
-    setFabricas((current) => current.filter((fabrica) => fabrica.id !== id));
-  }
 
-  function addProject(event) {
-    event.preventDefault();
-    const project = newProject.trim();
-    if (!project) return;
-    if (projetos.includes(project)) {
-      alert("Esse projeto já está cadastrado.");
-      return;
+    function load(key, fallback) {
+      try {
+        const raw = localStorage.getItem(key);
+        return raw ? JSON.parse(raw) : fallback;
+      } catch (error) {
+        return fallback;
+      }
     }
-    setProjetos((current) => [...current, project]);
-    setNewProject("");
-  }
 
-  function removeProject(project) {
-    const inUse = lotes.some((lote) => lote.projeto === project);
-    if (inUse) {
-      alert("Não é possível remover um projeto que já possui lotes cadastrados.");
-      return;
+    function persist() {
+      localStorage.setItem(STORAGE_KEYS.lots, JSON.stringify(state.lots));
+      localStorage.setItem(STORAGE_KEYS.tests, JSON.stringify(state.tests));
+      localStorage.setItem(STORAGE_KEYS.factories, JSON.stringify(state.factories));
+      localStorage.setItem(STORAGE_KEYS.projects, JSON.stringify(state.projects));
+      localStorage.setItem(STORAGE_KEYS.config, JSON.stringify(state.config));
     }
-    setProjetos((current) => current.filter((item) => item !== project));
-  }
 
-  const tabs = [
-    { id: "painel", label: "Painel", icon: BarChart3 },
-    { id: "cadastro", label: editingId ? "Editar lote" : "Cadastrar lote", icon: ClipboardList },
-    { id: "lotes", label: "Lotes", icon: Filter },
-    { id: "ensaios", label: "Ensaios", icon: FileCheck2 },
-    { id: "config", label: "Configurações", icon: Settings },
-  ];
+    function number(value) {
+      const parsed = Number(value);
+      return Number.isFinite(parsed) ? parsed : 0;
+    }
 
-  return (
-    <div className="min-h-screen bg-slate-100 text-slate-900">
-      <header className="border-b border-slate-800 bg-slate-950 text-white">
-        <div className="mx-auto max-w-7xl px-4 py-6 sm:px-6 lg:px-8">
-          <div className="flex flex-col gap-5 lg:flex-row lg:items-center lg:justify-between">
+    function today() {
+      return new Date().toISOString().slice(0, 10);
+    }
+
+    function addDays(dateString, days) {
+      if (!dateString) return "";
+      const parts = dateString.split("-").map(Number);
+      const date = new Date(Date.UTC(parts[0], parts[1] - 1, parts[2]));
+      date.setUTCDate(date.getUTCDate() + days);
+      return date.toISOString().slice(0, 10);
+    }
+
+    function id(prefix) {
+      return `${prefix}-${Date.now()}-${Math.random().toString(16).slice(2)}`;
+    }
+
+    function escapeHtml(value) {
+      return String(value ?? "")
+        .replace(/&/g, "&amp;")
+        .replace(/</g, "&lt;")
+        .replace(/>/g, "&gt;")
+        .replace(/"/g, "&quot;")
+        .replace(/'/g, "&#039;");
+    }
+
+    function factoryLabel(factoryId) {
+      const factory = state.factories.find(item => item.id === factoryId);
+      return factory ? `${factory.name} - ${factory.city}/${factory.uf}` : factoryId || "Fábrica não informada";
+    }
+
+    function baseKey(factoryId, project) {
+      return `${factoryId}__${project}`;
+    }
+
+    function lastClosedCycle(factoryId, project) {
+      const key = baseKey(factoryId, project);
+      return state.tests
+        .filter(test => test.baseKey === key)
+        .reduce((max, test) => Math.max(max, number(test.cycle)), 0);
+    }
+
+    function currentCycle(factoryId, project) {
+      const last = lastClosedCycle(factoryId, project);
+      const active = state.lots
+        .filter(lot => lot.factoryId === factoryId && lot.project === project && number(lot.cycle) > last)
+        .map(lot => number(lot.cycle));
+      return active.length ? Math.max(...active) : last + 1;
+    }
+
+    function formatNumber(value) {
+      return number(value).toLocaleString("pt-BR");
+    }
+
+    function showToast(message) {
+      const toast = document.getElementById("toast");
+      toast.textContent = message;
+      toast.classList.add("show");
+      setTimeout(() => toast.classList.remove("show"), 2300);
+    }
+
+    function alertInfo(totalSleepers, totalLots) {
+      const cfg = state.config;
+      const progressSleepers = Math.min(100, totalSleepers / number(cfg.limitSleepers) * 100);
+      const progressLots = Math.min(100, totalLots / number(cfg.limitLots) * 100);
+      const progress = Math.max(progressSleepers, progressLots);
+      const missingSleepers = Math.max(0, number(cfg.limitSleepers) - totalSleepers);
+      const missingLots = Math.max(0, number(cfg.limitLots) - totalLots);
+
+      if (totalSleepers >= number(cfg.limitSleepers) || totalLots >= number(cfg.limitLots)) {
+        return {
+          level: "ENSAIAR AGORA",
+          tone: "danger",
+          progress,
+          missingSleepers,
+          missingLots,
+          message: `Atingiu ${formatNumber(cfg.limitSleepers)} dormentes ou ${cfg.limitLots} lotes. Separar amostragem e registrar ensaio.`
+        };
+      }
+      if (totalSleepers >= number(cfg.warningSleepers) || totalLots >= number(cfg.warningLots)) {
+        return {
+          level: "PRÓXIMO DO ENSAIO",
+          tone: "warning",
+          progress,
+          missingSleepers,
+          missingLots,
+          message: "A série está próxima do limite. Planeje a amostragem antes da próxima produção."
+        };
+      }
+      return {
+        level: "EM ACOMPANHAMENTO",
+        tone: "ok",
+        progress,
+        missingSleepers,
+        missingLots,
+        message: "A série ainda não atingiu a janela de ensaio."
+      };
+    }
+
+    function getGroups() {
+      const map = new Map();
+      for (const lot of state.lots) {
+        const last = lastClosedCycle(lot.factoryId, lot.project);
+        if (number(lot.cycle) <= last) continue;
+        const key = `${lot.factoryId}__${lot.project}__${lot.cycle}`;
+        if (!map.has(key)) {
+          map.set(key, {
+            key,
+            factoryId: lot.factoryId,
+            project: lot.project,
+            cycle: lot.cycle,
+            lots: [],
+            totalSleepers: 0,
+            totalApproved: 0
+          });
+        }
+        const group = map.get(key);
+        group.lots.push(lot);
+        group.totalSleepers += number(lot.productionTotal);
+        group.totalApproved += number(lot.approvedProductionTotal || lot.productionTotal);
+      }
+      return Array.from(map.values()).map(group => ({
+        ...group,
+        alert: alertInfo(group.totalSleepers, group.lots.length)
+      })).sort((a, b) => {
+        const order = { "ENSAIAR AGORA": 0, "PRÓXIMO DO ENSAIO": 1, "EM ACOMPANHAMENTO": 2 };
+        return order[a.alert.level] - order[b.alert.level] || b.totalSleepers - a.totalSleepers;
+      });
+    }
+
+    function totals() {
+      const groups = getGroups();
+      return {
+        lots: state.lots.length,
+        sleepers: state.lots.reduce((sum, lot) => sum + number(lot.productionTotal), 0),
+        approved: state.lots.reduce((sum, lot) => sum + number(lot.approvedProductionTotal), 0),
+        activeGroups: groups.length,
+        criticalGroups: groups.filter(group => group.alert.level === "ENSAIAR AGORA").length,
+        tests: state.tests.length
+      };
+    }
+
+    function switchTab(tab) {
+      state.activeTab = tab;
+      document.querySelectorAll(".view").forEach(view => view.classList.toggle("active", view.id === tab));
+      document.querySelectorAll(".tab-btn").forEach(btn => btn.classList.toggle("active", btn.dataset.tab === tab));
+      if (tab === "cadastro") renderLotForm();
+      if (tab === "lotes") renderLotsTable();
+      if (tab === "ensaios") renderHistory();
+      if (tab === "config") renderSettings();
+      window.scrollTo({ top: 0, behavior: "smooth" });
+    }
+
+    function renderAll() {
+      persist();
+      renderHeroRule();
+      renderKpis();
+      renderAlerts();
+      renderFilterOptions();
+      renderLotsTable();
+      renderHistory();
+      renderSettings();
+      renderLotForm();
+    }
+
+    function renderHeroRule() {
+      document.getElementById("heroRuleText").innerHTML = `Ensaio ao atingir <strong>${formatNumber(state.config.limitSleepers)}</strong> dormentes ou <strong>${state.config.limitLots}</strong> lotes por <strong>Fábrica + Projeto</strong>. Aviso prévio a partir de ${formatNumber(state.config.warningSleepers)} dormentes ou ${state.config.warningLots} lotes.`;
+    }
+
+    function renderKpis() {
+      const t = totals();
+      const data = [
+        ["Lotes cadastrados", t.lots, ""],
+        ["Dormentes registrados", formatNumber(t.sleepers), ""],
+        ["Produção aprovada", formatNumber(t.approved), ""],
+        ["Séries ativas", t.activeGroups, ""],
+        ["Ensaiar agora", t.criticalGroups, "danger"],
+        ["Ensaios registrados", t.tests, ""]
+      ];
+      document.getElementById("kpiGrid").innerHTML = data.map(([label, value, cls]) => `
+        <div class="kpi ${cls}"><small>${label}</small><strong>${value}</strong></div>
+      `).join("");
+    }
+
+    function renderAlerts() {
+      const groups = getGroups();
+      const container = document.getElementById("alertsGrid");
+      if (!groups.length) {
+        container.className = "";
+        container.innerHTML = `<div class="empty"><strong>Nenhuma série ativa</strong>Cadastre lotes para iniciar o acompanhamento automático.</div>`;
+        return;
+      }
+      container.className = "alert-grid";
+      container.innerHTML = groups.map(group => {
+        const lotNames = group.lots.map(lot => escapeHtml(lot.lot)).join(" • ");
+        return `
+          <article class="alert-card ${group.alert.tone}">
+            <div class="alert-top">
+              <div>
+                <small>${escapeHtml(factoryLabel(group.factoryId))}</small>
+                <h3>${escapeHtml(group.project)}</h3>
+                <small>Ciclo atual: ${escapeHtml(group.cycle)}</small>
+              </div>
+              <span class="badge ${group.alert.tone}">${group.alert.level}</span>
+            </div>
+            <p class="muted" style="line-height:1.55">${escapeHtml(group.alert.message)}</p>
+            <div class="progress"><span style="width:${group.alert.progress}%"></span></div>
+            <div class="metric-row">
+              <div class="metric"><small>Dormentes</small><strong>${formatNumber(group.totalSleepers)}</strong><small>faltam ${formatNumber(group.alert.missingSleepers)}</small></div>
+              <div class="metric"><small>Lotes</small><strong>${group.lots.length}</strong><small>faltam ${group.alert.missingLots}</small></div>
+              <div class="metric"><small>Aprovado</small><strong>${formatNumber(group.totalApproved)}</strong><small>no ciclo</small></div>
+            </div>
+            <div class="lot-list"><strong>Lotes da série:</strong><br>${lotNames}</div>
+            <div class="modal-actions" style="justify-content:flex-start">
+              <button class="btn btn-primary" data-register-test="${escapeHtml(group.key)}">Registrar ensaio</button>
+              <button class="btn btn-outline" data-view-group="${escapeHtml(group.key)}">Ver lotes</button>
+            </div>
+          </article>
+        `;
+      }).join("");
+
+      container.querySelectorAll("[data-register-test]").forEach(btn => btn.addEventListener("click", () => openTestModal(btn.dataset.registerTest)));
+      container.querySelectorAll("[data-view-group]").forEach(btn => btn.addEventListener("click", () => {
+        const group = getGroups().find(item => item.key === btn.dataset.viewGroup);
+        if (!group) return;
+        state.filters.factory = group.factoryId;
+        state.filters.project = group.project;
+        state.filters.status = "todos";
+        state.filters.search = "";
+        renderFilterOptions();
+        renderLotsTable();
+        switchTab("lotes");
+      }));
+    }
+
+    function renderLotForm() {
+      const formEl = document.getElementById("lotForm");
+      document.getElementById("formTitle").textContent = state.editingId ? "Editar lote" : "Cadastrar novo lote";
+      document.getElementById("cancelEditBtn").style.display = state.editingId ? "inline-flex" : "none";
+      formEl.innerHTML = FORM_SECTIONS.map(section => `
+        <div class="form-section">
+          <h3>${escapeHtml(section.title)}</h3>
+          <p>${escapeHtml(section.desc)}</p>
+          <div class="form-grid">
+            ${section.fields.map(field => renderField(field)).join("")}
+          </div>
+        </div>
+      `).join("") + `
+        <div class="form-footer">
+          <p>Depois de salvar, confira o painel para verificar se algum projeto atingiu a meta de ensaio.</p>
+          <button class="btn btn-light" type="submit">${state.editingId ? "Salvar alterações" : "Salvar lote"}</button>
+        </div>
+      `;
+
+      formEl.querySelectorAll("[data-field]").forEach(input => {
+        input.addEventListener("input", () => updateFormValue(input.dataset.field, input.value));
+        input.addEventListener("change", () => updateFormValue(input.dataset.field, input.value));
+      });
+    }
+
+    function renderField(field) {
+      const value = state.form[field.key] ?? "";
+      let control = "";
+      if (field.type === "factory") {
+        control = `<select data-field="${field.key}">${state.factories.map(factory => `<option value="${escapeHtml(factory.id)}" ${value === factory.id ? "selected" : ""}>${escapeHtml(factory.name)} - ${escapeHtml(factory.city)}/${escapeHtml(factory.uf)}</option>`).join("")}</select>`;
+      } else if (field.type === "project") {
+        control = `<select data-field="${field.key}">${state.projects.map(project => `<option value="${escapeHtml(project)}" ${value === project ? "selected" : ""}>${escapeHtml(project)}</option>`).join("")}</select>`;
+      } else if (field.type === "status") {
+        control = `<select data-field="${field.key}">${STATUS_OPTIONS.map(status => `<option value="${escapeHtml(status)}" ${value === status ? "selected" : ""}>${escapeHtml(status)}</option>`).join("")}</select>`;
+      } else if (field.type === "select") {
+        control = `<select data-field="${field.key}">${field.options.map(option => `<option value="${escapeHtml(option)}" ${value === option ? "selected" : ""}>${escapeHtml(option)}</option>`).join("")}</select>`;
+      } else if (field.type === "textarea") {
+        control = `<textarea data-field="${field.key}" placeholder="${escapeHtml(field.placeholder || "")}">${escapeHtml(value)}</textarea>`;
+      } else {
+        control = `<input data-field="${field.key}" type="${field.type || "text"}" value="${escapeHtml(value)}" placeholder="${escapeHtml(field.placeholder || "")}" />`;
+      }
+      return `
+        <div class="field ${field.full ? "full" : ""}">
+          <label>${escapeHtml(field.label)} ${field.required ? `<span class="required">*</span>` : ""}</label>
+          ${control}
+        </div>
+      `;
+    }
+
+    function updateFormValue(key, value) {
+      state.form[key] = value;
+      if (key === "manufactureDate" && value) {
+        if (!state.form.cure14) setFieldValue("cure14", addDays(value, 14));
+        if (!state.form.cure28) setFieldValue("cure28", addDays(value, 28));
+        if (!state.form.break7CompDate) setFieldValue("break7CompDate", addDays(value, 7));
+        if (!state.form.break14CompDate) setFieldValue("break14CompDate", addDays(value, 14));
+        if (!state.form.break14TractionDate) setFieldValue("break14TractionDate", addDays(value, 14));
+        if (!state.form.break28CompDate) setFieldValue("break28CompDate", addDays(value, 28));
+        if (!state.form.break28TractionDate) setFieldValue("break28TractionDate", addDays(value, 28));
+      }
+      if (key === "productionTotal" && !state.form.approvedProductionTotal) {
+        setFieldValue("approvedProductionTotal", value);
+      }
+    }
+
+    function setFieldValue(key, value) {
+      state.form[key] = value;
+      const input = document.querySelector(`[data-field="${key}"]`);
+      if (input) input.value = value;
+    }
+
+    function validateLot() {
+      if (!state.form.factoryId) return "Informe a fábrica.";
+      if (!state.form.project) return "Informe o projeto.";
+      if (!String(state.form.lot || "").trim()) return "Informe o lote.";
+      if (number(state.form.productionTotal) <= 0) return "Informe o total da produção.";
+      const duplicated = state.lots.some(lot => lot.lot === state.form.lot && lot.id !== state.editingId);
+      if (duplicated) return "Já existe um lote cadastrado com esse código.";
+      return "";
+    }
+
+    function saveLot(event) {
+      event.preventDefault();
+      const error = validateLot();
+      if (error) {
+        alert(error);
+        return;
+      }
+
+      const now = new Date().toISOString();
+      const normalized = {
+        ...state.form,
+        productionTotal: number(state.form.productionTotal),
+        approvedProductionTotal: state.form.approvedProductionTotal === "" ? number(state.form.productionTotal) : number(state.form.approvedProductionTotal),
+        updatedAt: now
+      };
+
+      if (state.editingId) {
+        state.lots = state.lots.map(lot => lot.id === state.editingId ? { ...lot, ...normalized, id: state.editingId } : lot);
+        showToast("Lote atualizado.");
+      } else {
+        const cycle = currentCycle(normalized.factoryId, normalized.project);
+        state.lots = [{ id: id("lote"), createdAt: now, cycle, ...normalized }, ...state.lots];
+        showToast("Lote cadastrado.");
+      }
+
+      state.form = { ...EMPTY_LOT, factoryId: state.form.factoryId, project: state.form.project, sleeperType: state.form.sleeperType, shoulderType: state.form.shoulderType };
+      state.editingId = null;
+      renderAll();
+      switchTab("painel");
+    }
+
+    function editLot(lotId) {
+      const lot = state.lots.find(item => item.id === lotId);
+      if (!lot) return;
+      state.editingId = lotId;
+      state.form = { ...EMPTY_LOT, ...lot };
+      renderLotForm();
+      switchTab("cadastro");
+    }
+
+    function deleteLot(lotId) {
+      if (!confirm("Deseja excluir este lote?")) return;
+      state.lots = state.lots.filter(lot => lot.id !== lotId);
+      renderAll();
+      showToast("Lote excluído.");
+    }
+
+    function renderFilterOptions() {
+      const factorySelect = document.getElementById("filterFactory");
+      const projectSelect = document.getElementById("filterProject");
+      const statusSelect = document.getElementById("filterStatus");
+      document.getElementById("searchInput").value = state.filters.search;
+
+      factorySelect.innerHTML = `<option value="todas">Todas as fábricas</option>` + state.factories.map(factory => `<option value="${escapeHtml(factory.id)}" ${state.filters.factory === factory.id ? "selected" : ""}>${escapeHtml(factory.name)}</option>`).join("");
+      projectSelect.innerHTML = `<option value="todos">Todos os projetos</option>` + state.projects.map(project => `<option value="${escapeHtml(project)}" ${state.filters.project === project ? "selected" : ""}>${escapeHtml(project)}</option>`).join("");
+      statusSelect.innerHTML = `<option value="todos">Todos os status</option>` + STATUS_OPTIONS.map(status => `<option value="${escapeHtml(status)}" ${state.filters.status === status ? "selected" : ""}>${escapeHtml(status)}</option>`).join("");
+    }
+
+    function filteredLots() {
+      const term = state.filters.search.trim().toLowerCase();
+      return state.lots.filter(lot => {
+        const text = [
+          lot.lot,
+          lot.orderNumber,
+          lot.track,
+          lot.project,
+          lot.sleeperType,
+          lot.shoulderType,
+          lot.shoulderLot,
+          lot.status,
+          lot.reason,
+          factoryLabel(lot.factoryId)
+        ].join(" ").toLowerCase();
+        const matchText = !term || text.includes(term);
+        const matchFactory = state.filters.factory === "todas" || lot.factoryId === state.filters.factory;
+        const matchProject = state.filters.project === "todos" || lot.project === state.filters.project;
+        const matchStatus = state.filters.status === "todos" || lot.status === state.filters.status;
+        return matchText && matchFactory && matchProject && matchStatus;
+      });
+    }
+
+    function renderLotsTable() {
+      const tbody = document.getElementById("lotsTableBody");
+      const empty = document.getElementById("lotsEmpty");
+      const rows = filteredLots();
+      empty.style.display = rows.length ? "none" : "block";
+      tbody.innerHTML = rows.map(lot => `
+        <tr>
+          <td>
+            <strong>${escapeHtml(lot.lot)}</strong>
+            <div class="tiny muted">${escapeHtml(lot.track || "Sem pista")} • Pedido ${escapeHtml(lot.orderNumber || "--")} • Ciclo ${escapeHtml(lot.cycle || "--")}</div>
+          </td>
+          <td>${escapeHtml(factoryLabel(lot.factoryId))}</td>
+          <td><strong>${escapeHtml(lot.project)}</strong><div class="tiny muted">${escapeHtml(lot.sleeperType || "Tipo não informado")}</div></td>
+          <td><strong>${formatNumber(lot.productionTotal)}</strong><div class="tiny muted">Aprovado: ${formatNumber(lot.approvedProductionTotal)}</div></td>
+          <td class="tiny muted">Fab.: ${escapeHtml(lot.manufactureDate || "--")}<br>14d: ${escapeHtml(lot.cure14 || "--")}<br>28d: ${escapeHtml(lot.cure28 || "--")}</td>
+          <td class="tiny muted">${escapeHtml(lot.shoulderType || "Sem tipo")}<br>Lote: ${escapeHtml(lot.shoulderLot || "--")}<br>USP: ${escapeHtml(lot.hasUsp || "--")} ${lot.uspLot ? `• ${escapeHtml(lot.uspLot)}` : ""}</td>
+          <td><span class="badge ${statusTone(lot.status)}">${escapeHtml(lot.status)}</span>${lot.reason ? `<div class="tiny muted" style="margin-top:8px">${escapeHtml(lot.reason)}</div>` : ""}</td>
+          <td><div class="actions"><button class="btn btn-outline btn-small" data-edit-lot="${escapeHtml(lot.id)}">Editar</button><button class="btn btn-danger btn-small" data-delete-lot="${escapeHtml(lot.id)}">Excluir</button></div></td>
+        </tr>
+      `).join("");
+
+      tbody.querySelectorAll("[data-edit-lot]").forEach(btn => btn.addEventListener("click", () => editLot(btn.dataset.editLot)));
+      tbody.querySelectorAll("[data-delete-lot]").forEach(btn => btn.addEventListener("click", () => deleteLot(btn.dataset.deleteLot)));
+    }
+
+    function statusTone(status) {
+      const text = String(status || "").toLowerCase();
+      if (text.includes("reprov") || text.includes("bloque")) return "danger";
+      if (text.includes("liberad")) return "ok";
+      if (text.includes("ensaio") || text.includes("próximo")) return "warning";
+      return "gray";
+    }
+
+    function openTestModal(groupKey) {
+      const group = getGroups().find(item => item.key === groupKey);
+      if (!group) return;
+      state.selectedGroupKey = groupKey;
+      document.getElementById("testResult").value = "Aprovado";
+      document.getElementById("testSeries").value = `${group.project} - Ciclo ${group.cycle}`;
+      document.getElementById("testIAuditor").value = "";
+      document.getElementById("testSleepersTested").value = "";
+      document.getElementById("testSleepersFailed").value = "";
+      document.getElementById("testReason").value = "";
+      document.getElementById("testModalSubtitle").textContent = `${factoryLabel(group.factoryId)} • ${group.project} • ciclo ${group.cycle}`;
+      document.getElementById("testModalSummary").innerHTML = `
+        <strong>Total da série:</strong> ${group.lots.length} lotes • ${formatNumber(group.totalSleepers)} dormentes.<br>
+        <strong>Lotes:</strong> ${group.lots.map(lot => escapeHtml(lot.lot)).join(" • ")}
+      `;
+      document.getElementById("testModal").classList.add("show");
+    }
+
+    function closeTestModal() {
+      state.selectedGroupKey = null;
+      document.getElementById("testModal").classList.remove("show");
+    }
+
+    function registerTest(event) {
+      event.preventDefault();
+      const group = getGroups().find(item => item.key === state.selectedGroupKey);
+      if (!group) return;
+      const result = document.getElementById("testResult").value;
+      const status = RESULT_STATUS[result] || "Série em alerta por reprovação";
+      const test = {
+        id: id("ensaio"),
+        createdAt: new Date().toISOString(),
+        date: today(),
+        baseKey: baseKey(group.factoryId, group.project),
+        factoryId: group.factoryId,
+        project: group.project,
+        cycle: group.cycle,
+        result,
+        generatedStatus: status,
+        releaseTestSeries: document.getElementById("testSeries").value,
+        iauditorTest: document.getElementById("testIAuditor").value,
+        testedSleepers: document.getElementById("testSleepersTested").value,
+        failedSleepers: document.getElementById("testSleepersFailed").value,
+        reason: document.getElementById("testReason").value,
+        totalSleepers: group.totalSleepers,
+        totalLots: group.lots.length,
+        lots: group.lots.map(lot => ({ id: lot.id, lot: lot.lot }))
+      };
+
+      state.tests = [test, ...state.tests];
+      state.lots = state.lots.map(lot => {
+        const belongs = group.lots.some(item => item.id === lot.id);
+        if (!belongs) return lot;
+        return {
+          ...lot,
+          status,
+          releaseTestSeries: test.releaseTestSeries || lot.releaseTestSeries,
+          iauditorTest: test.iauditorTest || lot.iauditorTest,
+          testedSleepers: test.testedSleepers || lot.testedSleepers,
+          failedSleepers: test.failedSleepers || lot.failedSleepers,
+          reason: test.reason || result,
+          updatedAt: new Date().toISOString()
+        };
+      });
+      closeTestModal();
+      renderAll();
+      showToast("Ensaio registrado e série fechada.");
+    }
+
+    function renderHistory() {
+      const container = document.getElementById("historyGrid");
+      if (!state.tests.length) {
+        container.className = "";
+        container.innerHTML = `<div class="empty"><strong>Nenhum ensaio registrado</strong>Quando uma série atingir o limite, registre o resultado no painel principal.</div>`;
+        return;
+      }
+      container.className = "history-grid";
+      container.innerHTML = state.tests.map(test => `
+        <article class="history-card">
+          <div style="display:flex;justify-content:space-between;gap:14px;align-items:flex-start">
             <div>
-              <div className="mb-3 inline-flex items-center gap-2 rounded-full bg-white/10 px-3 py-1 text-sm text-slate-200 ring-1 ring-white/10">
-                <ShieldCheck size={16} /> Sistema de Inspeção de Dormentes de Concreto
-              </div>
-              <h1 className="text-3xl font-black tracking-tight sm:text-4xl">Controle de Lotes, Séries e Ensaios</h1>
-              <p className="mt-2 max-w-3xl text-sm leading-6 text-slate-300">
-                Painel para cadastrar lotes de dormentes, acompanhar produção acumulada por fábrica e projeto, identificar quando uma série deve ser ensaiada e registrar o resultado de liberação ou reprovação.
-              </p>
+              <div class="meta">${escapeHtml(factoryLabel(test.factoryId))}</div>
+              <h3>${escapeHtml(test.project)}</h3>
+              <div class="meta">Ciclo ${escapeHtml(test.cycle)} • ${escapeHtml(test.date)}</div>
             </div>
-
-            <div className="rounded-2xl border border-white/10 bg-white/5 p-4 shadow-lg">
-              <p className="text-sm font-semibold text-white">Regra automática ativa</p>
-              <p className="mt-1 text-sm text-slate-300">
-                Ensaio ao atingir <strong>{config.limiteDormentes.toLocaleString("pt-BR")}</strong> dormentes ou <strong>{config.limiteLotes}</strong> lotes por <strong>Fábrica + Projeto</strong>.
-              </p>
-              <div className="mt-3 flex flex-wrap gap-2">
-                <button onClick={exportCsv} className="inline-flex items-center gap-2 rounded-xl bg-white px-3 py-2 text-sm font-bold text-slate-950 hover:bg-slate-100">
-                  <Download size={16} /> CSV
-                </button>
-                <button onClick={exportBackup} className="inline-flex items-center gap-2 rounded-xl bg-slate-800 px-3 py-2 text-sm font-bold text-white hover:bg-slate-700">
-                  <Download size={16} /> Backup JSON
-                </button>
-              </div>
-            </div>
+            <span class="badge ${test.result === "Aprovado" ? "ok" : "danger"}">${escapeHtml(test.result)}</span>
           </div>
-
-          <nav className="mt-6 flex gap-2 overflow-x-auto pb-1">
-            {tabs.map((tab) => {
-              const Icon = tab.icon;
-              return (
-                <button
-                  key={tab.id}
-                  onClick={() => setActiveTab(tab.id)}
-                  className={classNames(
-                    "inline-flex shrink-0 items-center gap-2 rounded-xl px-4 py-2 text-sm font-bold transition",
-                    activeTab === tab.id ? "bg-white text-slate-950" : "bg-white/10 text-slate-200 hover:bg-white/15"
-                  )}
-                >
-                  <Icon size={16} /> {tab.label}
-                </button>
-              );
-            })}
-          </nav>
-        </div>
-      </header>
-
-      <main className="mx-auto max-w-7xl px-4 py-6 sm:px-6 lg:px-8">
-        {activeTab === "painel" && (
-          <section className="space-y-6">
-            <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-6">
-              <StatCard title="Lotes cadastrados" value={totals.lotes} />
-              <StatCard title="Dormentes registrados" value={totals.totalDormentes.toLocaleString("pt-BR")} />
-              <StatCard title="Produção aprovada" value={totals.totalAprovado.toLocaleString("pt-BR")} />
-              <StatCard title="Séries ativas" value={totals.gruposAtivos} />
-              <StatCard title="Ensaiar agora" value={totals.gruposCriticos} danger />
-              <StatCard title="Ensaios registrados" value={totals.ensaios} />
-            </div>
-
-            <div className="rounded-2xl bg-white p-5 shadow-sm ring-1 ring-slate-200">
-              <div className="mb-4 flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between">
-                <div>
-                  <h2 className="text-2xl font-black">Alertas por fábrica e projeto</h2>
-                  <p className="mt-1 text-sm text-slate-500">
-                    Cada cartão representa a série atual. Ao registrar o ensaio, a contagem fecha e o próximo lote entra em um novo ciclo.
-                  </p>
-                </div>
-                <button
-                  onClick={() => setActiveTab("cadastro")}
-                  className="inline-flex items-center justify-center gap-2 rounded-xl bg-slate-950 px-4 py-2.5 text-sm font-bold text-white hover:bg-slate-800"
-                >
-                  <Plus size={16} /> Cadastrar lote
-                </button>
-              </div>
-
-              {grupos.length === 0 ? (
-                <EmptyState title="Nenhuma série ativa" description="Cadastre lotes para iniciar o acompanhamento automático de ensaios." />
-              ) : (
-                <div className="grid gap-4 xl:grid-cols-2">
-                  {grupos.map((grupo) => {
-                    const AlertIcon = grupo.alert.icon;
-                    return (
-                      <div key={grupo.key} className={classNames("rounded-2xl border p-4 shadow-sm", grupo.alert.card)}>
-                        <div className="flex items-start justify-between gap-3">
-                          <div>
-                            <p className="text-sm font-bold opacity-75">{fabricaNome(fabricas, grupo.fabricaId)}</p>
-                            <h3 className="mt-1 text-xl font-black leading-tight">{grupo.projeto}</h3>
-                            <p className="mt-1 text-xs opacity-70">Ciclo atual: {grupo.ciclo}</p>
-                          </div>
-                          <span className={classNames("inline-flex items-center gap-1 rounded-full px-3 py-1 text-xs font-black", grupo.alert.badge)}>
-                            <AlertIcon size={14} /> {grupo.alert.level}
-                          </span>
-                        </div>
-
-                        <p className="mt-3 text-sm leading-6">{grupo.alert.message}</p>
-
-                        <div className="mt-4 h-3 overflow-hidden rounded-full bg-white/70">
-                          <div className="h-full rounded-full bg-current opacity-70" style={{ width: `${grupo.alert.progress}%` }} />
-                        </div>
-
-                        <div className="mt-4 grid grid-cols-2 gap-3">
-                          <MetricBox title="Dormentes no ciclo" value={grupo.totalDormentes.toLocaleString("pt-BR")} note={`faltam ${grupo.alert.faltaDormentes.toLocaleString("pt-BR")} para ${config.limiteDormentes.toLocaleString("pt-BR")}`} />
-                          <MetricBox title="Lotes no ciclo" value={grupo.lotes.length} note={`faltam ${grupo.alert.faltaLotes} para ${config.limiteLotes}`} />
-                        </div>
-
-                        <div className="mt-4 rounded-xl bg-white/70 p-3 text-xs leading-5">
-                          <p className="font-black">Lotes da série atual:</p>
-                          <p className="mt-1">{grupo.lotes.map((lote) => lote.lote).join(" • ")}</p>
-                        </div>
-
-                        <div className="mt-4 grid gap-2 sm:grid-cols-2">
-                          <button
-                            onClick={() => startEnsaio(grupo)}
-                            className="inline-flex items-center justify-center gap-2 rounded-xl bg-slate-950 px-4 py-2.5 text-sm font-bold text-white hover:bg-slate-800"
-                          >
-                            <FileCheck2 size={16} /> Registrar ensaio
-                          </button>
-                          <button
-                            onClick={() => {
-                              setFabricaFiltro(grupo.fabricaId);
-                              setProjetoFiltro(grupo.projeto);
-                              setStatusFiltro("todos");
-                              setActiveTab("lotes");
-                            }}
-                            className="inline-flex items-center justify-center gap-2 rounded-xl border border-current bg-white/40 px-4 py-2.5 text-sm font-bold hover:bg-white/70"
-                          >
-                            <Search size={16} /> Ver lotes
-                          </button>
-                        </div>
-                      </div>
-                    );
-                  })}
-                </div>
-              )}
-            </div>
-          </section>
-        )}
-
-        {activeTab === "cadastro" && (
-          <section className="rounded-2xl bg-white p-5 shadow-sm ring-1 ring-slate-200">
-            <div className="mb-5 flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
-              <div>
-                <h2 className="text-2xl font-black">{editingId ? "Editar lote" : "Cadastrar novo lote"}</h2>
-                <p className="mt-1 text-sm text-slate-500">
-                  O sistema calcula automaticamente o ciclo ativo pelo conjunto fábrica + projeto e usa esse lote na contagem da próxima janela de ensaio.
-                </p>
-              </div>
-              {editingId && (
-                <button
-                  onClick={() => {
-                    setEditingId(null);
-                    setForm(emptyLote);
-                  }}
-                  className="inline-flex items-center gap-2 rounded-xl border border-slate-300 px-4 py-2 text-sm font-bold hover:bg-slate-50"
-                >
-                  <X size={16} /> Cancelar edição
-                </button>
-              )}
-            </div>
-
-            <form onSubmit={saveLote} className="space-y-5">
-              {FORM_SECTIONS.map((section) => (
-                <div key={section.title} className="rounded-2xl border border-slate-200 bg-slate-50 p-4">
-                  <div className="mb-4">
-                    <h3 className="text-lg font-black">{section.title}</h3>
-                    <p className="text-sm text-slate-500">{section.description}</p>
-                  </div>
-                  <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-3">
-                    {section.fields.map((field) => (
-                      <label key={field.key} className={classNames("block text-sm font-bold text-slate-700", field.full && "md:col-span-2 xl:col-span-3")}>
-                        {field.label} {field.required && <span className="text-red-600">*</span>}
-                        <FieldRenderer
-                          field={field}
-                          value={form[field.key]}
-                          onChange={updateForm}
-                          fabricas={fabricas}
-                          projetos={projetos}
-                        />
-                      </label>
-                    ))}
-                  </div>
-                </div>
-              ))}
-
-              <div className="flex flex-col-reverse gap-3 rounded-2xl bg-slate-950 p-4 sm:flex-row sm:items-center sm:justify-between">
-                <p className="text-sm text-slate-300">
-                  Depois de salvar, confira o painel para ver se algum projeto atingiu a meta de ensaio.
-                </p>
-                <button className="inline-flex items-center justify-center gap-2 rounded-xl bg-white px-5 py-3 text-sm font-black text-slate-950 hover:bg-slate-100">
-                  <Save size={16} /> {editingId ? "Salvar alterações" : "Salvar lote"}
-                </button>
-              </div>
-            </form>
-          </section>
-        )}
-
-        {activeTab === "lotes" && (
-          <section className="space-y-5">
-            <div className="rounded-2xl bg-white p-5 shadow-sm ring-1 ring-slate-200">
-              <div className="mb-4 flex flex-col gap-3 lg:flex-row lg:items-end lg:justify-between">
-                <div>
-                  <h2 className="text-2xl font-black">Consulta de lotes</h2>
-                  <p className="mt-1 text-sm text-slate-500">Filtre por fábrica, projeto, status ou texto livre.</p>
-                </div>
-                <button onClick={exportCsv} className="inline-flex items-center justify-center gap-2 rounded-xl bg-slate-950 px-4 py-2.5 text-sm font-bold text-white hover:bg-slate-800">
-                  <Download size={16} /> Exportar CSV
-                </button>
-              </div>
-
-              <div className="grid gap-3 md:grid-cols-2 xl:grid-cols-5">
-                <div className="relative xl:col-span-2">
-                  <Search className="absolute left-3 top-3 text-slate-400" size={16} />
-                  <input
-                    value={query}
-                    onChange={(event) => setQuery(event.target.value)}
-                    placeholder="Buscar lote, pedido, ombreira, projeto..."
-                    className="w-full rounded-xl border border-slate-300 py-2.5 pl-9 pr-3 text-sm outline-none focus:border-slate-950 focus:ring-2 focus:ring-slate-950/10"
-                  />
-                </div>
-                <select value={fabricaFiltro} onChange={(event) => setFabricaFiltro(event.target.value)} className="rounded-xl border border-slate-300 px-3 py-2.5 text-sm outline-none focus:border-slate-950">
-                  <option value="todas">Todas as fábricas</option>
-                  {fabricas.map((fabrica) => (
-                    <option key={fabrica.id} value={fabrica.id}>{fabrica.nome}</option>
-                  ))}
-                </select>
-                <select value={projetoFiltro} onChange={(event) => setProjetoFiltro(event.target.value)} className="rounded-xl border border-slate-300 px-3 py-2.5 text-sm outline-none focus:border-slate-950">
-                  <option value="todos">Todos os projetos</option>
-                  {projetos.map((projeto) => (
-                    <option key={projeto} value={projeto}>{projeto}</option>
-                  ))}
-                </select>
-                <select value={statusFiltro} onChange={(event) => setStatusFiltro(event.target.value)} className="rounded-xl border border-slate-300 px-3 py-2.5 text-sm outline-none focus:border-slate-950">
-                  <option value="todos">Todos os status</option>
-                  {STATUS_OPTIONS.map((status) => (
-                    <option key={status} value={status}>{status}</option>
-                  ))}
-                </select>
-              </div>
-            </div>
-
-            <div className="overflow-hidden rounded-2xl bg-white shadow-sm ring-1 ring-slate-200">
-              <div className="overflow-x-auto">
-                <table className="min-w-full divide-y divide-slate-200 text-sm">
-                  <thead className="bg-slate-50 text-left text-xs uppercase tracking-wide text-slate-500">
-                    <tr>
-                      <th className="px-4 py-3">Lote</th>
-                      <th className="px-4 py-3">Fábrica</th>
-                      <th className="px-4 py-3">Projeto</th>
-                      <th className="px-4 py-3">Produção</th>
-                      <th className="px-4 py-3">Datas</th>
-                      <th className="px-4 py-3">Ombreiras/USP</th>
-                      <th className="px-4 py-3">Status</th>
-                      <th className="px-4 py-3">Ações</th>
-                    </tr>
-                  </thead>
-                  <tbody className="divide-y divide-slate-100 bg-white">
-                    {filteredLotes.map((lote) => (
-                      <tr key={lote.id} className="align-top hover:bg-slate-50">
-                        <td className="px-4 py-3">
-                          <p className="font-black text-slate-950">{lote.lote}</p>
-                          <p className="mt-1 text-xs text-slate-500">{lote.pista || "Sem pista"} • Pedido {lote.numeroPedido || "--"} • Ciclo {lote.ciclo}</p>
-                        </td>
-                        <td className="px-4 py-3 text-slate-600">{fabricaNome(fabricas, lote.fabricaId)}</td>
-                        <td className="px-4 py-3 font-semibold">{lote.projeto}</td>
-                        <td className="px-4 py-3">
-                          <p className="font-black">{toNumber(lote.totalProducao).toLocaleString("pt-BR")}</p>
-                          <p className="text-xs text-slate-500">aprovado: {toNumber(lote.totalProducaoAprovado).toLocaleString("pt-BR")}</p>
-                        </td>
-                        <td className="px-4 py-3 text-xs leading-5 text-slate-600">
-                          <p>Fab.: {lote.dataFabricacao || "--"}</p>
-                          <p>14d: {lote.cura14Dias || "--"}</p>
-                          <p>28d: {lote.cura28Dias || "--"}</p>
-                        </td>
-                        <td className="px-4 py-3 text-xs leading-5 text-slate-600">
-                          <p>{lote.tipoOmbreiras || "Sem tipo"}</p>
-                          <p>Lote: {lote.loteOmbreiras || "--"}</p>
-                          <p>USP: {lote.comUsp || "--"} {lote.uspLote ? `• ${lote.uspLote}` : ""}</p>
-                        </td>
-                        <td className="px-4 py-3">
-                          <span className={classNames("inline-flex rounded-full px-3 py-1 text-xs font-black", statusClass(lote.status))}>{lote.status}</span>
-                          {lote.motivoEspecificacao && <p className="mt-2 max-w-xs text-xs leading-5 text-slate-500">{lote.motivoEspecificacao}</p>}
-                        </td>
-                        <td className="px-4 py-3">
-                          <div className="flex gap-2">
-                            <button onClick={() => editLote(lote)} className="rounded-lg border border-slate-300 p-2 text-slate-600 hover:bg-slate-100" title="Editar">
-                              <Edit3 size={15} />
-                            </button>
-                            <button onClick={() => deleteLote(lote.id)} className="rounded-lg border border-red-200 p-2 text-red-600 hover:bg-red-50" title="Excluir">
-                              <Trash2 size={15} />
-                            </button>
-                          </div>
-                        </td>
-                      </tr>
-                    ))}
-                  </tbody>
-                </table>
-              </div>
-              {filteredLotes.length === 0 && <EmptyState title="Nenhum lote encontrado" description="Ajuste os filtros ou cadastre novos lotes." />}
-            </div>
-          </section>
-        )}
-
-        {activeTab === "ensaios" && (
-          <section className="rounded-2xl bg-white p-5 shadow-sm ring-1 ring-slate-200">
-            <div className="mb-5 flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between">
-              <div>
-                <h2 className="text-2xl font-black">Histórico de ensaios e séries fechadas</h2>
-                <p className="mt-1 text-sm text-slate-500">Cada registro representa uma série fechada. Após isso, a contagem daquele projeto reinicia no próximo ciclo.</p>
-              </div>
-            </div>
-
-            {ensaios.length === 0 ? (
-              <EmptyState title="Nenhum ensaio registrado" description="Quando uma série atingir o limite, registre o resultado no painel principal." />
-            ) : (
-              <div className="grid gap-4 lg:grid-cols-2">
-                {ensaios.map((ensaio) => (
-                  <div key={ensaio.id} className="rounded-2xl border border-slate-200 p-4">
-                    <div className="flex items-start justify-between gap-3">
-                      <div>
-                        <p className="text-xs font-bold uppercase tracking-wide text-slate-500">{fabricaNome(fabricas, ensaio.fabricaId)}</p>
-                        <h3 className="mt-1 text-lg font-black">{ensaio.projeto}</h3>
-                        <p className="mt-1 text-sm text-slate-500">Ciclo {ensaio.ciclo} • {ensaio.data}</p>
-                      </div>
-                      <span className={classNames("rounded-full px-3 py-1 text-xs font-black", ensaio.resultado === "Aprovado" ? "bg-emerald-100 text-emerald-800" : "bg-red-100 text-red-800")}>{ensaio.resultado}</span>
-                    </div>
-
-                    <div className="mt-4 grid grid-cols-2 gap-3">
-                      <MetricBox title="Lotes" value={ensaio.totalLotes} note="na série fechada" />
-                      <MetricBox title="Dormentes" value={toNumber(ensaio.totalDormentes).toLocaleString("pt-BR")} note="na série fechada" />
-                    </div>
-
-                    <div className="mt-4 rounded-xl bg-slate-50 p-3 text-sm text-slate-600">
-                      <p><strong>Série:</strong> {ensaio.serieEnsaioLiberacao || "--"}</p>
-                      <p><strong>iAuditor:</strong> {ensaio.ensaioIAuditor || "--"}</p>
-                      <p><strong>Dormentes ensaiados:</strong> {ensaio.dormentesEnsaiados || "--"}</p>
-                      <p><strong>Dormentes reprovados:</strong> {ensaio.dormentesReprovados || "--"}</p>
-                      {ensaio.motivo && <p className="mt-2"><strong>Motivo:</strong> {ensaio.motivo}</p>}
-                    </div>
-
-                    <p className="mt-3 text-xs leading-5 text-slate-500">
-                      <strong>Lotes:</strong> {ensaio.lotesDaSerie.map((item) => item.lote).join(" • ")}
-                    </p>
-                  </div>
-                ))}
-              </div>
-            )}
-          </section>
-        )}
-
-        {activeTab === "config" && (
-          <section className="grid gap-6 lg:grid-cols-2">
-            <div className="rounded-2xl bg-white p-5 shadow-sm ring-1 ring-slate-200">
-              <h2 className="text-2xl font-black">Regras de alerta</h2>
-              <p className="mt-1 text-sm text-slate-500">A regra principal é 2.000 dormentes ou 10 lotes, mas deixei editável para futura alteração.</p>
-
-              <div className="mt-5 grid gap-4 sm:grid-cols-2">
-                <label className="block text-sm font-bold">
-                  Limite de dormentes
-                  <input type="number" value={config.limiteDormentes} onChange={(event) => setConfig({ ...config, limiteDormentes: toNumber(event.target.value) })} className="mt-1 w-full rounded-xl border border-slate-300 px-3 py-2 outline-none focus:border-slate-950" />
-                </label>
-                <label className="block text-sm font-bold">
-                  Limite de lotes
-                  <input type="number" value={config.limiteLotes} onChange={(event) => setConfig({ ...config, limiteLotes: toNumber(event.target.value) })} className="mt-1 w-full rounded-xl border border-slate-300 px-3 py-2 outline-none focus:border-slate-950" />
-                </label>
-                <label className="block text-sm font-bold">
-                  Aviso a partir de dormentes
-                  <input type="number" value={config.avisoDormentes} onChange={(event) => setConfig({ ...config, avisoDormentes: toNumber(event.target.value) })} className="mt-1 w-full rounded-xl border border-slate-300 px-3 py-2 outline-none focus:border-slate-950" />
-                </label>
-                <label className="block text-sm font-bold">
-                  Aviso a partir de lotes
-                  <input type="number" value={config.avisoLotes} onChange={(event) => setConfig({ ...config, avisoLotes: toNumber(event.target.value) })} className="mt-1 w-full rounded-xl border border-slate-300 px-3 py-2 outline-none focus:border-slate-950" />
-                </label>
-              </div>
-
-              <div className="mt-6 flex flex-wrap gap-3">
-                <button onClick={exportBackup} className="inline-flex items-center gap-2 rounded-xl bg-slate-950 px-4 py-2.5 text-sm font-bold text-white hover:bg-slate-800">
-                  <Download size={16} /> Exportar backup
-                </button>
-                <button onClick={resetDemoData} className="inline-flex items-center gap-2 rounded-xl border border-slate-300 px-4 py-2.5 text-sm font-bold hover:bg-slate-50">
-                  <RefreshCcw size={16} /> Restaurar exemplo
-                </button>
-                <button onClick={clearAllData} className="inline-flex items-center gap-2 rounded-xl border border-red-200 px-4 py-2.5 text-sm font-bold text-red-700 hover:bg-red-50">
-                  <Trash2 size={16} /> Apagar lotes/ensaios
-                </button>
-              </div>
-            </div>
-
-            <div className="space-y-6">
-              <div className="rounded-2xl bg-white p-5 shadow-sm ring-1 ring-slate-200">
-                <h2 className="text-2xl font-black">Fábricas</h2>
-                <p className="mt-1 text-sm text-slate-500">Cavan e Conprem já estão cadastradas. Adicione novas fábricas quando precisar.</p>
-
-                <form onSubmit={addFactory} className="mt-4 grid gap-3 sm:grid-cols-[1fr_1fr_90px_auto]">
-                  <input value={newFactory.nome} onChange={(event) => setNewFactory({ ...newFactory, nome: event.target.value })} placeholder="Nome" className="rounded-xl border border-slate-300 px-3 py-2 text-sm outline-none focus:border-slate-950" />
-                  <input value={newFactory.cidade} onChange={(event) => setNewFactory({ ...newFactory, cidade: event.target.value })} placeholder="Cidade" className="rounded-xl border border-slate-300 px-3 py-2 text-sm outline-none focus:border-slate-950" />
-                  <input value={newFactory.uf} onChange={(event) => setNewFactory({ ...newFactory, uf: event.target.value })} placeholder="UF" maxLength={2} className="rounded-xl border border-slate-300 px-3 py-2 text-sm uppercase outline-none focus:border-slate-950" />
-                  <button className="inline-flex items-center justify-center gap-2 rounded-xl bg-slate-950 px-4 py-2 text-sm font-bold text-white hover:bg-slate-800"><Plus size={16} /> Add</button>
-                </form>
-
-                <div className="mt-4 space-y-2">
-                  {fabricas.map((fabrica) => (
-                    <div key={fabrica.id} className="flex items-center justify-between gap-3 rounded-xl bg-slate-50 px-3 py-2 text-sm">
-                      <span><strong>{fabrica.nome}</strong> — {fabrica.cidade}/{fabrica.uf}</span>
-                      <button onClick={() => removeFactory(fabrica.id)} className="rounded-lg p-2 text-red-600 hover:bg-red-50"><Trash2 size={15} /></button>
-                    </div>
-                  ))}
-                </div>
-              </div>
-
-              <div className="rounded-2xl bg-white p-5 shadow-sm ring-1 ring-slate-200">
-                <h2 className="text-2xl font-black">Projetos</h2>
-                <p className="mt-1 text-sm text-slate-500">Os projetos atuais são Malha Paulista Bitola Larga, Malha Paulista Bitola Mista, FMT e Ferronorte.</p>
-
-                <form onSubmit={addProject} className="mt-4 flex gap-3">
-                  <input value={newProject} onChange={(event) => setNewProject(event.target.value)} placeholder="Novo projeto" className="min-w-0 flex-1 rounded-xl border border-slate-300 px-3 py-2 text-sm outline-none focus:border-slate-950" />
-                  <button className="inline-flex items-center justify-center gap-2 rounded-xl bg-slate-950 px-4 py-2 text-sm font-bold text-white hover:bg-slate-800"><Plus size={16} /> Add</button>
-                </form>
-
-                <div className="mt-4 space-y-2">
-                  {projetos.map((projeto) => (
-                    <div key={projeto} className="flex items-center justify-between gap-3 rounded-xl bg-slate-50 px-3 py-2 text-sm">
-                      <span className="font-semibold">{projeto}</span>
-                      <button onClick={() => removeProject(projeto)} className="rounded-lg p-2 text-red-600 hover:bg-red-50"><Trash2 size={15} /></button>
-                    </div>
-                  ))}
-                </div>
-              </div>
-            </div>
-          </section>
-        )}
-      </main>
-
-      {selectedGroup && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-950/70 p-4">
-          <div className="max-h-[92vh] w-full max-w-2xl overflow-y-auto rounded-3xl bg-white p-6 shadow-2xl">
-            <div className="flex items-start justify-between gap-4">
-              <div>
-                <h2 className="text-2xl font-black">Registrar ensaio da série</h2>
-                <p className="mt-1 text-sm text-slate-500">
-                  Esta ação fecha o ciclo {selectedGroup.ciclo} de {selectedGroup.projeto} em {fabricaNome(fabricas, selectedGroup.fabricaId)} e zera a contagem para o próximo ciclo.
-                </p>
-              </div>
-              <button onClick={() => setSelectedGroup(null)} className="rounded-xl p-2 text-slate-500 hover:bg-slate-100"><X /></button>
-            </div>
-
-            <div className="mt-5 rounded-2xl bg-slate-50 p-4 text-sm leading-6">
-              <p><strong>Total da série:</strong> {selectedGroup.lotes.length} lotes • {selectedGroup.totalDormentes.toLocaleString("pt-BR")} dormentes.</p>
-              <p><strong>Lotes:</strong> {selectedGroup.lotes.map((lote) => lote.lote).join(" • ")}</p>
-            </div>
-
-            <div className="mt-5 grid gap-4 sm:grid-cols-2">
-              <label className="block text-sm font-bold sm:col-span-2">
-                Resultado do ensaio
-                <select value={ensaioForm.resultado} onChange={(event) => setEnsaioForm({ ...ensaioForm, resultado: event.target.value })} className="mt-1 w-full rounded-xl border border-slate-300 px-3 py-2 outline-none focus:border-slate-950">
-                  {RESULTADO_ENSAIO_OPTIONS.map((option) => <option key={option} value={option}>{option}</option>)}
-                </select>
-              </label>
-              <label className="block text-sm font-bold">
-                Série - ensaio de liberação
-                <input value={ensaioForm.serieEnsaioLiberacao} onChange={(event) => setEnsaioForm({ ...ensaioForm, serieEnsaioLiberacao: event.target.value })} className="mt-1 w-full rounded-xl border border-slate-300 px-3 py-2 outline-none focus:border-slate-950" />
-              </label>
-              <label className="block text-sm font-bold">
-                Ensaio no iAuditor
-                <input value={ensaioForm.ensaioIAuditor} onChange={(event) => setEnsaioForm({ ...ensaioForm, ensaioIAuditor: event.target.value })} className="mt-1 w-full rounded-xl border border-slate-300 px-3 py-2 outline-none focus:border-slate-950" />
-              </label>
-              <label className="block text-sm font-bold">
-                Dormentes ensaiados
-                <input type="number" value={ensaioForm.dormentesEnsaiados} onChange={(event) => setEnsaioForm({ ...ensaioForm, dormentesEnsaiados: event.target.value })} className="mt-1 w-full rounded-xl border border-slate-300 px-3 py-2 outline-none focus:border-slate-950" />
-              </label>
-              <label className="block text-sm font-bold">
-                Dormentes reprovados
-                <input type="number" value={ensaioForm.dormentesReprovados} onChange={(event) => setEnsaioForm({ ...ensaioForm, dormentesReprovados: event.target.value })} className="mt-1 w-full rounded-xl border border-slate-300 px-3 py-2 outline-none focus:border-slate-950" />
-              </label>
-              <label className="block text-sm font-bold sm:col-span-2">
-                Motivo / especificação
-                <textarea value={ensaioForm.motivo} onChange={(event) => setEnsaioForm({ ...ensaioForm, motivo: event.target.value })} rows={4} placeholder="Descreva aprovação, reprovação, motivo técnico, especificação violada ou observação da série..." className="mt-1 w-full rounded-xl border border-slate-300 px-3 py-2 outline-none focus:border-slate-950" />
-              </label>
-            </div>
-
-            <div className="mt-6 flex flex-col-reverse gap-3 sm:flex-row sm:justify-end">
-              <button onClick={() => setSelectedGroup(null)} className="rounded-xl border border-slate-300 px-4 py-2.5 text-sm font-bold hover:bg-slate-50">Cancelar</button>
-              <button onClick={registrarEnsaio} className="inline-flex items-center justify-center gap-2 rounded-xl bg-slate-950 px-4 py-2.5 text-sm font-black text-white hover:bg-slate-800">
-                <RotateCcw size={16} /> Fechar série e iniciar novo ciclo
-              </button>
-            </div>
+          <div class="metric-row" style="margin-top:14px; grid-template-columns:repeat(2,minmax(0,1fr))">
+            <div class="metric"><small>Lotes</small><strong>${test.totalLots}</strong><small>série fechada</small></div>
+            <div class="metric"><small>Dormentes</small><strong>${formatNumber(test.totalSleepers)}</strong><small>série fechada</small></div>
           </div>
+          <div class="lot-list">
+            <strong>Série:</strong> ${escapeHtml(test.releaseTestSeries || "--")}<br>
+            <strong>iAuditor:</strong> ${escapeHtml(test.iauditorTest || "--")}<br>
+            <strong>Ensaiados:</strong> ${escapeHtml(test.testedSleepers || "--")} • <strong>Reprovados:</strong> ${escapeHtml(test.failedSleepers || "--")}<br>
+            ${test.reason ? `<strong>Motivo:</strong> ${escapeHtml(test.reason)}<br>` : ""}
+            <strong>Lotes:</strong> ${test.lots.map(item => escapeHtml(item.lot)).join(" • ")}
+          </div>
+        </article>
+      `).join("");
+    }
+
+    function renderSettings() {
+      document.getElementById("cfgLimitSleepers").value = state.config.limitSleepers;
+      document.getElementById("cfgLimitLots").value = state.config.limitLots;
+      document.getElementById("cfgWarnSleepers").value = state.config.warningSleepers;
+      document.getElementById("cfgWarnLots").value = state.config.warningLots;
+
+      document.getElementById("factoryList").innerHTML = state.factories.map(factory => `
+        <div class="mini-item">
+          <span><strong>${escapeHtml(factory.name)}</strong> — ${escapeHtml(factory.city)}/${escapeHtml(factory.uf)}</span>
+          <button class="btn btn-danger btn-small" data-remove-factory="${escapeHtml(factory.id)}">Remover</button>
         </div>
-      )}
-    </div>
-  );
-}
+      `).join("");
+      document.querySelectorAll("[data-remove-factory]").forEach(btn => btn.addEventListener("click", () => removeFactory(btn.dataset.removeFactory)));
 
-function StatCard({ title, value, danger }) {
-  return (
-    <div className={classNames("rounded-2xl bg-white p-5 shadow-sm ring-1", danger ? "ring-red-200" : "ring-slate-200")}>
-      <p className="text-sm font-medium text-slate-500">{title}</p>
-      <p className={classNames("mt-1 text-3xl font-black", danger ? "text-red-600" : "text-slate-950")}>{value}</p>
-    </div>
-  );
-}
+      document.getElementById("projectList").innerHTML = state.projects.map(project => `
+        <div class="mini-item">
+          <span><strong>${escapeHtml(project)}</strong></span>
+          <button class="btn btn-danger btn-small" data-remove-project="${escapeHtml(project)}">Remover</button>
+        </div>
+      `).join("");
+      document.querySelectorAll("[data-remove-project]").forEach(btn => btn.addEventListener("click", () => removeProject(btn.dataset.removeProject)));
+    }
 
-function MetricBox({ title, value, note }) {
-  return (
-    <div className="rounded-xl bg-white/75 p-3 ring-1 ring-black/5">
-      <p className="text-xs font-bold opacity-70">{title}</p>
-      <p className="mt-1 text-2xl font-black">{value}</p>
-      {note && <p className="mt-1 text-xs opacity-70">{note}</p>}
-    </div>
-  );
-}
+    function saveConfig() {
+      state.config = {
+        limitSleepers: number(document.getElementById("cfgLimitSleepers").value),
+        limitLots: number(document.getElementById("cfgLimitLots").value),
+        warningSleepers: number(document.getElementById("cfgWarnSleepers").value),
+        warningLots: number(document.getElementById("cfgWarnLots").value)
+      };
+      renderAll();
+      showToast("Regras salvas.");
+    }
 
-function EmptyState({ title, description }) {
-  return (
-    <div className="rounded-2xl border border-dashed border-slate-300 bg-slate-50 p-8 text-center">
-      <p className="text-lg font-black text-slate-700">{title}</p>
-      <p className="mt-1 text-sm text-slate-500">{description}</p>
-    </div>
-  );
-}
+    function addFactory(event) {
+      event.preventDefault();
+      const name = document.getElementById("newFactoryName").value.trim();
+      const city = document.getElementById("newFactoryCity").value.trim();
+      const uf = document.getElementById("newFactoryUf").value.trim().toUpperCase();
+      if (!name) {
+        alert("Informe o nome da fábrica.");
+        return;
+      }
+      let factoryId = slug(name);
+      if (state.factories.some(factory => factory.id === factoryId)) factoryId += `-${Date.now()}`;
+      state.factories.push({ id: factoryId, name, city, uf });
+      document.getElementById("newFactoryName").value = "";
+      document.getElementById("newFactoryCity").value = "";
+      document.getElementById("newFactoryUf").value = "";
+      renderAll();
+      showToast("Fábrica adicionada.");
+    }
+
+    function removeFactory(factoryId) {
+      if (state.lots.some(lot => lot.factoryId === factoryId)) {
+        alert("Não é possível remover uma fábrica que já possui lotes cadastrados.");
+        return;
+      }
+      state.factories = state.factories.filter(factory => factory.id !== factoryId);
+      renderAll();
+    }
+
+    function addProject(event) {
+      event.preventDefault();
+      const name = document.getElementById("newProjectName").value.trim();
+      if (!name) return;
+      if (state.projects.includes(name)) {
+        alert("Esse projeto já está cadastrado.");
+        return;
+      }
+      state.projects.push(name);
+      document.getElementById("newProjectName").value = "";
+      renderAll();
+      showToast("Projeto adicionado.");
+    }
+
+    function removeProject(project) {
+      if (state.lots.some(lot => lot.project === project)) {
+        alert("Não é possível remover um projeto que já possui lotes cadastrados.");
+        return;
+      }
+      state.projects = state.projects.filter(item => item !== project);
+      renderAll();
+    }
+
+    function slug(text) {
+      return text.toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "").replace(/[^a-z0-9]+/g, "-").replace(/^-|-$/g, "");
+    }
+
+    function csvEscape(value) {
+      const text = String(value ?? "");
+      return /[;"\n\r]/.test(text) ? `"${text.replace(/"/g, '""')}"` : text;
+    }
+
+    function download(filename, content, type) {
+      const blob = new Blob([content], { type });
+      const url = URL.createObjectURL(blob);
+      const link = document.createElement("a");
+      link.href = url;
+      link.download = filename;
+      document.body.appendChild(link);
+      link.click();
+      link.remove();
+      URL.revokeObjectURL(url);
+    }
+
+    function exportCsv() {
+      const headers = [
+        "fabrica", "cidade_uf", "pista", "numero_pedido", "lote", "projeto", "tipo_dormente",
+        "total_producao", "data_fabricacao", "cura_14_dias", "cura_28_dias", "com_usp", "usp_lote",
+        "tipo_ombreiras", "lote_ombreiras", "temperatura_inicial", "temperatura_meio", "temperatura_final",
+        "slump_inicio_abatimento", "slump_inicio_espalhamento", "slump_meio_abatimento", "slump_meio_espalhamento",
+        "slump_fim_abatimento", "slump_fim_espalhamento", "desprotensao_inicio", "desprotensao_meio", "desprotensao_fim",
+        "tempo_cura_horas", "ruptura_7_comp", "ruptura_14_comp", "ruptura_14_tracao", "ruptura_28_comp", "ruptura_28_tracao",
+        "comp_axial_7", "comp_axial_14", "tracao_flexao_14", "comp_axial_28", "tracao_flexao_28",
+        "serie_ensaio_liberacao", "ensaio_iauditor", "dormentes_ensaiados", "dormentes_a_serem_analisados",
+        "dormentes_reprovados", "total_producao_aprovado", "status", "motivo_especificacao", "ciclo"
+      ];
+      const rows = state.lots.map(lot => {
+        const factory = state.factories.find(item => item.id === lot.factoryId);
+        return [
+          factory ? factory.name : lot.factoryId,
+          factory ? `${factory.city}/${factory.uf}` : "",
+          lot.track, lot.orderNumber, lot.lot, lot.project, lot.sleeperType, lot.productionTotal, lot.manufactureDate, lot.cure14, lot.cure28,
+          lot.hasUsp, lot.uspLot, lot.shoulderType, lot.shoulderLot, lot.tempStart, lot.tempMiddle, lot.tempEnd,
+          lot.slumpStartDrop, lot.slumpStartSpread, lot.slumpMiddleDrop, lot.slumpMiddleSpread, lot.slumpEndDrop, lot.slumpEndSpread,
+          lot.detensionStart, lot.detensionMiddle, lot.detensionEnd, lot.cureHours, lot.break7CompDate, lot.break14CompDate, lot.break14TractionDate,
+          lot.break28CompDate, lot.break28TractionDate, lot.compAxial7, lot.compAxial14, lot.flexTraction14, lot.compAxial28, lot.flexTraction28,
+          lot.releaseTestSeries, lot.iauditorTest, lot.testedSleepers, lot.toAnalyzeSleepers, lot.failedSleepers, lot.approvedProductionTotal,
+          lot.status, lot.reason, lot.cycle
+        ];
+      });
+      const content = [headers, ...rows].map(row => row.map(csvEscape).join(";")).join("\n");
+      download(`controle-dormentes-${today()}.csv`, content, "text/csv;charset=utf-8");
+    }
+
+    function exportBackup() {
+      const payload = {
+        exportedAt: new Date().toISOString(),
+        lots: state.lots,
+        tests: state.tests,
+        factories: state.factories,
+        projects: state.projects,
+        config: state.config
+      };
+      download(`backup-controle-dormentes-${today()}.json`, JSON.stringify(payload, null, 2), "application/json;charset=utf-8");
+    }
+
+    function importBackup(file) {
+      if (!file) return;
+      const reader = new FileReader();
+      reader.onload = () => {
+        try {
+          const payload = JSON.parse(reader.result);
+          if (!Array.isArray(payload.lots) || !Array.isArray(payload.factories) || !Array.isArray(payload.projects)) {
+            throw new Error("Formato inválido");
+          }
+          state.lots = payload.lots;
+          state.tests = Array.isArray(payload.tests) ? payload.tests : [];
+          state.factories = payload.factories;
+          state.projects = payload.projects;
+          state.config = payload.config || DEFAULT_CONFIG;
+          renderAll();
+          showToast("Backup importado.");
+        } catch (error) {
+          alert("Não consegui importar esse arquivo JSON. Verifique se é um backup gerado por este sistema.");
+        }
+      };
+      reader.readAsText(file);
+    }
+
+    function restoreDemo() {
+      if (!confirm("Restaurar os dados de exemplo? Isso substitui os dados atuais neste navegador.")) return;
+      state.lots = SAMPLE_LOTS;
+      state.tests = [];
+      state.factories = DEFAULT_FACTORIES;
+      state.projects = DEFAULT_PROJECTS;
+      state.config = DEFAULT_CONFIG;
+      state.form = { ...EMPTY_LOT };
+      state.editingId = null;
+      renderAll();
+      showToast("Exemplo restaurado.");
+    }
+
+    function clearData() {
+      if (!confirm("Apagar todos os lotes e ensaios deste navegador? Exporte um backup antes se quiser guardar os dados.")) return;
+      state.lots = [];
+      state.tests = [];
+      renderAll();
+      showToast("Lotes e ensaios apagados.");
+    }
+
+    function bindEvents() {
+      document.querySelectorAll(".tab-btn").forEach(btn => btn.addEventListener("click", () => switchTab(btn.dataset.tab)));
+      document.querySelectorAll("[data-tab-target]").forEach(btn => btn.addEventListener("click", () => switchTab(btn.dataset.tabTarget)));
+      document.getElementById("lotForm").addEventListener("submit", saveLot);
+      document.getElementById("cancelEditBtn").addEventListener("click", () => {
+        state.editingId = null;
+        state.form = { ...EMPTY_LOT };
+        renderLotForm();
+      });
+
+      document.getElementById("searchInput").addEventListener("input", event => { state.filters.search = event.target.value; renderLotsTable(); });
+      document.getElementById("filterFactory").addEventListener("change", event => { state.filters.factory = event.target.value; renderLotsTable(); });
+      document.getElementById("filterProject").addEventListener("change", event => { state.filters.project = event.target.value; renderLotsTable(); });
+      document.getElementById("filterStatus").addEventListener("change", event => { state.filters.status = event.target.value; renderLotsTable(); });
+
+      document.getElementById("closeTestModal").addEventListener("click", closeTestModal);
+      document.getElementById("cancelTestBtn").addEventListener("click", closeTestModal);
+      document.getElementById("testForm").addEventListener("submit", registerTest);
+      document.getElementById("testModal").addEventListener("click", event => { if (event.target.id === "testModal") closeTestModal(); });
+
+      document.getElementById("exportCsvTop").addEventListener("click", exportCsv);
+      document.getElementById("exportCsvBtn").addEventListener("click", exportCsv);
+      document.getElementById("exportCsvConfig").addEventListener("click", exportCsv);
+      document.getElementById("exportBackupTop").addEventListener("click", exportBackup);
+      document.getElementById("exportBackupConfig").addEventListener("click", exportBackup);
+      document.getElementById("importBackupInput").addEventListener("change", event => importBackup(event.target.files[0]));
+
+      document.getElementById("saveConfigBtn").addEventListener("click", saveConfig);
+      document.getElementById("restoreDemoBtn").addEventListener("click", restoreDemo);
+      document.getElementById("clearDataBtn").addEventListener("click", clearData);
+      document.getElementById("factoryForm").addEventListener("submit", addFactory);
+      document.getElementById("projectForm").addEventListener("submit", addProject);
+    }
+
+    bindEvents();
+    renderAll();
+  </script>
+</body>
+</html>
