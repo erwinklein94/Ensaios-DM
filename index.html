@@ -1,0 +1,839 @@
+import React, { useMemo, useState } from "react";
+import { AlertTriangle, CheckCircle2, Factory, FileCheck2, Plus, RotateCcw, Search, ShieldCheck } from "lucide-react";
+
+const FABRICAS = [
+  { id: "cavan", nome: "Cavan", cidade: "Santa Lúcia", uf: "SP" },
+  { id: "conprem", nome: "Conprem", cidade: "Campanha", uf: "MG" },
+  { id: "outra", nome: "Outra fábrica", cidade: "A definir", uf: "--" },
+];
+
+const PROJETOS = [
+  "Malha Paulista Bitola Larga",
+  "Malha Paulista Bitola Mista",
+  "FMT",
+  "Ferronorte",
+  "Outro projeto",
+];
+
+const CAMPOS_COMPLETOS_DO_LOTE = [
+  "PISTA",
+  "N° PEDIDO",
+  "LOTE",
+  "PROJETO",
+  "TIPO DE DORMENTE",
+  "TOTAL DA PRODUÇÃO",
+  "DATA DE FABRICAÇÃO",
+  "CURA 14 DIAS",
+  "CURA 28 DIAS",
+  "COM USP",
+  "USP (LOTE)",
+  "TIPO DE OMBREIRAS",
+  "LOTE OMBREIRAS",
+  "TEMPERATURA °C INICIAL",
+  "TEMPERATURA °C MEIO",
+  "TEMPERATURA °C FINAL",
+  "SLUMP INÍCIO - ABATIMENTO",
+  "SLUMP INÍCIO - ESPALHAMENTO",
+  "SLUMP MEIO - ABATIMENTO",
+  "SLUMP MEIO - ESPALHAMENTO",
+  "SLUMP FIM - ABATIMENTO",
+  "SLUMP FIM - ESPALHAMENTO",
+  "DESPRONTENSÃO INÍCIO PISTA",
+  "DESPRONTENSÃO MEIO PISTA",
+  "DESPRONTENSÃO FIM PISTA",
+  "TEMPO DE CURA (HORAS)",
+  "RUPTURA 7 DIAS - COMP.",
+  "RUPTURA 14 DIAS - COMP.",
+  "RUPTURA 14 DIAS - TRAÇÃO",
+  "RUPTURA 28 DIAS - COMP.",
+  "RUPTURA 28 DIAS - TRAÇÃO",
+  "COMP. AXIAL 7 DIAS (MPa)",
+  "COMP. AXIAL 14 DIAS (MPa)",
+  "TRAÇÃO FLEXÃO 14 DIAS",
+  "COMP. AXIAL 28 DIAS (MPa)",
+  "TRAÇÃO FLEXÃO 28 DIAS",
+  "SÉRIE - ENSAIO DE LIBERAÇÃO",
+  "ENSAIO NO IAUDITOR",
+  "DORMENTES ENSAIADOS",
+  "DORMENTES A SEREM ANALISADOS",
+  "DORMENTES REPROVADOS",
+  "TOTAL DA PRODUÇÃO APROVADO",
+  "STATUS",
+  "MOTIVO / ESPECIFICAÇÃO",
+];
+
+const LOTES_INICIAIS = [
+  {
+    id: 1,
+    fabricaId: "cavan",
+    pista: "Pista 01",
+    pedido: "450001",
+    lote: "CVN-001/26",
+    projeto: "Malha Paulista Bitola Larga",
+    tipoDormente: "Monobloco protendido",
+    totalProducao: 310,
+    dataFabricacao: "2026-04-01",
+    tipoOmbreira: "Ombreira elástica",
+    loteOmbreira: "OMB-101",
+    status: "Aguardando série",
+    motivo: "",
+    ciclo: 1,
+  },
+  {
+    id: 2,
+    fabricaId: "cavan",
+    pista: "Pista 02",
+    pedido: "450001",
+    lote: "CVN-002/26",
+    projeto: "Malha Paulista Bitola Larga",
+    tipoDormente: "Monobloco protendido",
+    totalProducao: 295,
+    dataFabricacao: "2026-04-02",
+    tipoOmbreira: "Ombreira elástica",
+    loteOmbreira: "OMB-101",
+    status: "Aguardando série",
+    motivo: "",
+    ciclo: 1,
+  },
+  {
+    id: 3,
+    fabricaId: "cavan",
+    pista: "Pista 03",
+    pedido: "450001",
+    lote: "CVN-003/26",
+    projeto: "Malha Paulista Bitola Larga",
+    tipoDormente: "Monobloco protendido",
+    totalProducao: 325,
+    dataFabricacao: "2026-04-03",
+    tipoOmbreira: "Ombreira elástica",
+    loteOmbreira: "OMB-102",
+    status: "Aguardando série",
+    motivo: "",
+    ciclo: 1,
+  },
+  {
+    id: 4,
+    fabricaId: "cavan",
+    pista: "Pista 04",
+    pedido: "450001",
+    lote: "CVN-004/26",
+    projeto: "Malha Paulista Bitola Larga",
+    tipoDormente: "Monobloco protendido",
+    totalProducao: 330,
+    dataFabricacao: "2026-04-04",
+    tipoOmbreira: "Ombreira elástica",
+    loteOmbreira: "OMB-102",
+    status: "Aguardando série",
+    motivo: "",
+    ciclo: 1,
+  },
+  {
+    id: 5,
+    fabricaId: "cavan",
+    pista: "Pista 05",
+    pedido: "450001",
+    lote: "CVN-005/26",
+    projeto: "Malha Paulista Bitola Larga",
+    tipoDormente: "Monobloco protendido",
+    totalProducao: 315,
+    dataFabricacao: "2026-04-05",
+    tipoOmbreira: "Ombreira elástica",
+    loteOmbreira: "OMB-103",
+    status: "Aguardando série",
+    motivo: "",
+    ciclo: 1,
+  },
+  {
+    id: 6,
+    fabricaId: "cavan",
+    pista: "Pista 06",
+    pedido: "450001",
+    lote: "CVN-006/26",
+    projeto: "Malha Paulista Bitola Larga",
+    tipoDormente: "Monobloco protendido",
+    totalProducao: 305,
+    dataFabricacao: "2026-04-06",
+    tipoOmbreira: "Ombreira elástica",
+    loteOmbreira: "OMB-103",
+    status: "Aguardando série",
+    motivo: "",
+    ciclo: 1,
+  },
+  {
+    id: 7,
+    fabricaId: "cavan",
+    pista: "Pista 07",
+    pedido: "450001",
+    lote: "CVN-007/26",
+    projeto: "Malha Paulista Bitola Larga",
+    tipoDormente: "Monobloco protendido",
+    totalProducao: 300,
+    dataFabricacao: "2026-04-07",
+    tipoOmbreira: "Ombreira elástica",
+    loteOmbreira: "OMB-104",
+    status: "Aguardando série",
+    motivo: "",
+    ciclo: 1,
+  },
+  {
+    id: 8,
+    fabricaId: "conprem",
+    pista: "Pista A",
+    pedido: "460010",
+    lote: "CPM-001/26",
+    projeto: "Ferronorte",
+    tipoDormente: "Concreto protendido",
+    totalProducao: 285,
+    dataFabricacao: "2026-04-03",
+    tipoOmbreira: "Ombreira fundida",
+    loteOmbreira: "OMB-FN-01",
+    status: "Aguardando série",
+    motivo: "",
+    ciclo: 1,
+  },
+  {
+    id: 9,
+    fabricaId: "conprem",
+    pista: "Pista B",
+    pedido: "460010",
+    lote: "CPM-002/26",
+    projeto: "Ferronorte",
+    tipoDormente: "Concreto protendido",
+    totalProducao: 290,
+    dataFabricacao: "2026-04-04",
+    tipoOmbreira: "Ombreira fundida",
+    loteOmbreira: "OMB-FN-01",
+    status: "Aguardando série",
+    motivo: "",
+    ciclo: 1,
+  },
+];
+
+function classNames(...classes) {
+  return classes.filter(Boolean).join(" ");
+}
+
+function fabricaNome(id) {
+  const f = FABRICAS.find((item) => item.id === id);
+  return f ? `${f.nome} - ${f.cidade}/${f.uf}` : id;
+}
+
+function calcularNivel(totalDormentes, totalLotes) {
+  const faltaDormentes = Math.max(0, 2000 - totalDormentes);
+  const faltaLotes = Math.max(0, 10 - totalLotes);
+
+  if (totalDormentes >= 2000 || totalLotes >= 10) {
+    return {
+      nivel: "ENSAIAR AGORA",
+      cor: "bg-red-50 border-red-300 text-red-800",
+      badge: "bg-red-600 text-white",
+      mensagem: "A série já atingiu o gatilho de ensaio: 2.000 dormentes ou 10 lotes.",
+      faltaDormentes,
+      faltaLotes,
+    };
+  }
+
+  if (totalDormentes >= 1800 || totalLotes >= 9) {
+    return {
+      nivel: "PRÓXIMO DO ENSAIO",
+      cor: "bg-amber-50 border-amber-300 text-amber-900",
+      badge: "bg-amber-500 text-white",
+      mensagem: "A série está próxima do limite. Planejar amostragem e ensaio de liberação.",
+      faltaDormentes,
+      faltaLotes,
+    };
+  }
+
+  return {
+    nivel: "EM ACOMPANHAMENTO",
+    cor: "bg-emerald-50 border-emerald-300 text-emerald-900",
+    badge: "bg-emerald-600 text-white",
+    mensagem: "Ainda não atingiu a janela de ensaio.",
+    faltaDormentes,
+    faltaLotes,
+  };
+}
+
+export default function App() {
+  const [lotes, setLotes] = useState(LOTES_INICIAIS);
+  const [ensaios, setEnsaios] = useState([]);
+  const [filtro, setFiltro] = useState("");
+  const [fabricaFiltro, setFabricaFiltro] = useState("todas");
+  const [projetoFiltro, setProjetoFiltro] = useState("todos");
+  const [mostrarCampos, setMostrarCampos] = useState(false);
+  const [grupoSelecionado, setGrupoSelecionado] = useState(null);
+  const [resultadoEnsaio, setResultadoEnsaio] = useState("Aprovado");
+  const [motivoEnsaio, setMotivoEnsaio] = useState("");
+
+  const [novo, setNovo] = useState({
+    fabricaId: "cavan",
+    pista: "",
+    pedido: "",
+    lote: "",
+    projeto: "Malha Paulista Bitola Larga",
+    tipoDormente: "",
+    totalProducao: 300,
+    dataFabricacao: "",
+    tipoOmbreira: "",
+    loteOmbreira: "",
+    status: "Aguardando série",
+    motivo: "",
+  });
+
+  const cicloAtualPorGrupo = useMemo(() => {
+    const mapa = new Map();
+    for (const ensaio of ensaios) {
+      const chave = `${ensaio.fabricaId}__${ensaio.projeto}`;
+      mapa.set(chave, Math.max(mapa.get(chave) || 1, ensaio.ciclo + 1));
+    }
+    return mapa;
+  }, [ensaios]);
+
+  const lotesComFiltro = useMemo(() => {
+    const termo = filtro.trim().toLowerCase();
+    return lotes.filter((lote) => {
+      const texto = `${lote.lote} ${lote.pedido} ${lote.projeto} ${lote.pista} ${fabricaNome(lote.fabricaId)}`.toLowerCase();
+      const bateTexto = !termo || texto.includes(termo);
+      const bateFabrica = fabricaFiltro === "todas" || lote.fabricaId === fabricaFiltro;
+      const bateProjeto = projetoFiltro === "todos" || lote.projeto === projetoFiltro;
+      return bateTexto && bateFabrica && bateProjeto;
+    });
+  }, [lotes, filtro, fabricaFiltro, projetoFiltro]);
+
+  const grupos = useMemo(() => {
+    const mapa = new Map();
+
+    for (const lote of lotes) {
+      const chaveBase = `${lote.fabricaId}__${lote.projeto}`;
+      const cicloAtual = cicloAtualPorGrupo.get(chaveBase) || 1;
+      if (lote.ciclo !== cicloAtual) continue;
+
+      const chave = `${lote.fabricaId}__${lote.projeto}__${lote.ciclo}`;
+      if (!mapa.has(chave)) {
+        mapa.set(chave, {
+          chave,
+          fabricaId: lote.fabricaId,
+          projeto: lote.projeto,
+          ciclo: lote.ciclo,
+          lotes: [],
+          totalDormentes: 0,
+        });
+      }
+      const grupo = mapa.get(chave);
+      grupo.lotes.push(lote);
+      grupo.totalDormentes += Number(lote.totalProducao || 0);
+    }
+
+    return Array.from(mapa.values())
+      .map((grupo) => ({ ...grupo, alerta: calcularNivel(grupo.totalDormentes, grupo.lotes.length) }))
+      .sort((a, b) => {
+        const prioridade = { "ENSAIAR AGORA": 0, "PRÓXIMO DO ENSAIO": 1, "EM ACOMPANHAMENTO": 2 };
+        return prioridade[a.alerta.nivel] - prioridade[b.alerta.nivel];
+      });
+  }, [lotes, cicloAtualPorGrupo]);
+
+  const totais = useMemo(() => {
+    return {
+      lotes: lotes.length,
+      dormentes: lotes.reduce((acc, item) => acc + Number(item.totalProducao || 0), 0),
+      ensaios: ensaios.length,
+      alertas: grupos.filter((g) => g.alerta.nivel !== "EM ACOMPANHAMENTO").length,
+    };
+  }, [lotes, ensaios, grupos]);
+
+  function adicionarLote(e) {
+    e.preventDefault();
+    if (!novo.lote || !novo.projeto || !novo.fabricaId || !novo.totalProducao) return;
+
+    const chaveBase = `${novo.fabricaId}__${novo.projeto}`;
+    const ciclo = cicloAtualPorGrupo.get(chaveBase) || 1;
+
+    setLotes((atual) => [
+      {
+        id: Date.now(),
+        ...novo,
+        totalProducao: Number(novo.totalProducao),
+        ciclo,
+      },
+      ...atual,
+    ]);
+
+    setNovo({
+      fabricaId: novo.fabricaId,
+      pista: "",
+      pedido: "",
+      lote: "",
+      projeto: novo.projeto,
+      tipoDormente: novo.tipoDormente,
+      totalProducao: 300,
+      dataFabricacao: "",
+      tipoOmbreira: novo.tipoOmbreira,
+      loteOmbreira: "",
+      status: "Aguardando série",
+      motivo: "",
+    });
+  }
+
+  function registrarEnsaio() {
+    if (!grupoSelecionado) return;
+
+    const novoEnsaio = {
+      id: Date.now(),
+      fabricaId: grupoSelecionado.fabricaId,
+      projeto: grupoSelecionado.projeto,
+      ciclo: grupoSelecionado.ciclo,
+      data: new Date().toISOString().slice(0, 10),
+      resultado: resultadoEnsaio,
+      motivo: motivoEnsaio,
+      lotesDaSerie: grupoSelecionado.lotes.map((l) => l.lote),
+      totalDormentes: grupoSelecionado.totalDormentes,
+      totalLotes: grupoSelecionado.lotes.length,
+    };
+
+    setEnsaios((atual) => [novoEnsaio, ...atual]);
+
+    setLotes((atual) =>
+      atual.map((lote) => {
+        const pertence = grupoSelecionado.lotes.some((item) => item.id === lote.id);
+        if (!pertence) return lote;
+        return {
+          ...lote,
+          status:
+            resultadoEnsaio === "Aprovado"
+              ? "Série liberada por ensaio"
+              : resultadoEnsaio === "Reprovado - alerta"
+              ? "Série em alerta por reprovação"
+              : "Lote/série reprovado",
+          motivo: motivoEnsaio || resultadoEnsaio,
+        };
+      })
+    );
+
+    setGrupoSelecionado(null);
+    setResultadoEnsaio("Aprovado");
+    setMotivoEnsaio("");
+  }
+
+  return (
+    <div className="min-h-screen bg-slate-100 text-slate-900">
+      <header className="border-b border-slate-200 bg-slate-950 text-white">
+        <div className="mx-auto max-w-7xl px-4 py-6 sm:px-6 lg:px-8">
+          <div className="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
+            <div>
+              <div className="mb-2 inline-flex items-center gap-2 rounded-full bg-white/10 px-3 py-1 text-sm text-slate-200">
+                <ShieldCheck size={16} /> Controle de inspeção de dormentes de concreto
+              </div>
+              <h1 className="text-3xl font-bold tracking-tight sm:text-4xl">Painel de Lotes e Ensaios de Liberação</h1>
+              <p className="mt-2 max-w-3xl text-sm leading-6 text-slate-300">
+                Primeiro esboço para controlar lotes por fábrica e projeto, somar produção acumulada e avisar quando uma série atingir 2.000 dormentes ou 10 lotes, o que ocorrer primeiro.
+              </p>
+            </div>
+            <div className="rounded-2xl border border-white/10 bg-white/5 p-4 text-sm text-slate-200 shadow-lg">
+              <p className="font-semibold text-white">Regra principal do sistema</p>
+              <p className="mt-1">Chave de controle inicial: <strong>Fábrica + Projeto</strong>.</p>
+              <p>Ao registrar o resultado do ensaio, a série fecha e a contagem reinicia para o próximo ciclo.</p>
+            </div>
+          </div>
+        </div>
+      </header>
+
+      <main className="mx-auto max-w-7xl px-4 py-6 sm:px-6 lg:px-8">
+        <section className="grid gap-4 md:grid-cols-4">
+          <div className="rounded-2xl bg-white p-5 shadow-sm ring-1 ring-slate-200">
+            <p className="text-sm text-slate-500">Lotes cadastrados</p>
+            <p className="mt-1 text-3xl font-bold">{totais.lotes}</p>
+          </div>
+          <div className="rounded-2xl bg-white p-5 shadow-sm ring-1 ring-slate-200">
+            <p className="text-sm text-slate-500">Dormentes registrados</p>
+            <p className="mt-1 text-3xl font-bold">{totais.dormentes.toLocaleString("pt-BR")}</p>
+          </div>
+          <div className="rounded-2xl bg-white p-5 shadow-sm ring-1 ring-slate-200">
+            <p className="text-sm text-slate-500">Séries em alerta</p>
+            <p className="mt-1 text-3xl font-bold">{totais.alertas}</p>
+          </div>
+          <div className="rounded-2xl bg-white p-5 shadow-sm ring-1 ring-slate-200">
+            <p className="text-sm text-slate-500">Ensaios registrados</p>
+            <p className="mt-1 text-3xl font-bold">{totais.ensaios}</p>
+          </div>
+        </section>
+
+        <section className="mt-6 grid gap-6 lg:grid-cols-[1fr_420px]">
+          <div className="space-y-6">
+            <div className="rounded-2xl bg-white p-5 shadow-sm ring-1 ring-slate-200">
+              <div className="mb-4 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+                <div>
+                  <h2 className="text-xl font-bold">Alertas por projeto</h2>
+                  <p className="text-sm text-slate-500">Cada cartão representa a série atual de uma fábrica + projeto.</p>
+                </div>
+                <button
+                  onClick={() => setMostrarCampos((v) => !v)}
+                  className="rounded-xl border border-slate-300 px-3 py-2 text-sm font-medium hover:bg-slate-50"
+                >
+                  {mostrarCampos ? "Ocultar campos completos" : "Ver campos previstos"}
+                </button>
+              </div>
+
+              {mostrarCampos && (
+                <div className="mb-5 rounded-2xl bg-slate-50 p-4 ring-1 ring-slate-200">
+                  <p className="mb-3 text-sm font-semibold text-slate-700">Campos que o cadastro completo do lote deve aceitar:</p>
+                  <div className="grid gap-2 sm:grid-cols-2 lg:grid-cols-3">
+                    {CAMPOS_COMPLETOS_DO_LOTE.map((campo) => (
+                      <span key={campo} className="rounded-lg bg-white px-3 py-2 text-xs text-slate-600 ring-1 ring-slate-200">
+                        {campo}
+                      </span>
+                    ))}
+                  </div>
+                </div>
+              )}
+
+              <div className="grid gap-4 xl:grid-cols-2">
+                {grupos.map((grupo) => (
+                  <div key={grupo.chave} className={classNames("rounded-2xl border p-4 shadow-sm", grupo.alerta.cor)}>
+                    <div className="flex items-start justify-between gap-3">
+                      <div>
+                        <p className="text-sm font-semibold opacity-80">{fabricaNome(grupo.fabricaId)}</p>
+                        <h3 className="mt-1 text-lg font-bold leading-tight">{grupo.projeto}</h3>
+                      </div>
+                      <span className={classNames("rounded-full px-3 py-1 text-xs font-bold", grupo.alerta.badge)}>
+                        {grupo.alerta.nivel}
+                      </span>
+                    </div>
+
+                    <p className="mt-3 text-sm">{grupo.alerta.mensagem}</p>
+
+                    <div className="mt-4 grid grid-cols-2 gap-3">
+                      <div className="rounded-xl bg-white/75 p-3">
+                        <p className="text-xs font-medium opacity-70">Dormentes no ciclo</p>
+                        <p className="mt-1 text-2xl font-bold">{grupo.totalDormentes.toLocaleString("pt-BR")}</p>
+                        <p className="text-xs opacity-70">faltam {grupo.alerta.faltaDormentes.toLocaleString("pt-BR")} para 2.000</p>
+                      </div>
+                      <div className="rounded-xl bg-white/75 p-3">
+                        <p className="text-xs font-medium opacity-70">Lotes no ciclo</p>
+                        <p className="mt-1 text-2xl font-bold">{grupo.lotes.length}</p>
+                        <p className="text-xs opacity-70">faltam {grupo.alerta.faltaLotes} para 10 lotes</p>
+                      </div>
+                    </div>
+
+                    <div className="mt-4 rounded-xl bg-white/70 p-3 text-xs">
+                      <p className="font-semibold">Série atual:</p>
+                      <p className="mt-1 leading-5">{grupo.lotes.map((l) => l.lote).join(" • ")}</p>
+                    </div>
+
+                    <button
+                      onClick={() => setGrupoSelecionado(grupo)}
+                      className="mt-4 inline-flex w-full items-center justify-center gap-2 rounded-xl bg-slate-950 px-4 py-2.5 text-sm font-semibold text-white hover:bg-slate-800"
+                    >
+                      <FileCheck2 size={16} /> Registrar ensaio e zerar contagem
+                    </button>
+                  </div>
+                ))}
+              </div>
+            </div>
+
+            <div className="rounded-2xl bg-white p-5 shadow-sm ring-1 ring-slate-200">
+              <div className="mb-4 flex flex-col gap-3 lg:flex-row lg:items-center lg:justify-between">
+                <div>
+                  <h2 className="text-xl font-bold">Lotes cadastrados</h2>
+                  <p className="text-sm text-slate-500">Consulta rápida por lote, pedido, projeto, fábrica ou pista.</p>
+                </div>
+                <div className="grid gap-2 sm:grid-cols-3">
+                  <div className="relative sm:col-span-1">
+                    <Search className="absolute left-3 top-2.5 text-slate-400" size={16} />
+                    <input
+                      value={filtro}
+                      onChange={(e) => setFiltro(e.target.value)}
+                      placeholder="Buscar..."
+                      className="w-full rounded-xl border border-slate-300 py-2 pl-9 pr-3 text-sm outline-none focus:border-slate-900"
+                    />
+                  </div>
+                  <select
+                    value={fabricaFiltro}
+                    onChange={(e) => setFabricaFiltro(e.target.value)}
+                    className="rounded-xl border border-slate-300 px-3 py-2 text-sm outline-none focus:border-slate-900"
+                  >
+                    <option value="todas">Todas as fábricas</option>
+                    {FABRICAS.map((f) => (
+                      <option key={f.id} value={f.id}>{f.nome}</option>
+                    ))}
+                  </select>
+                  <select
+                    value={projetoFiltro}
+                    onChange={(e) => setProjetoFiltro(e.target.value)}
+                    className="rounded-xl border border-slate-300 px-3 py-2 text-sm outline-none focus:border-slate-900"
+                  >
+                    <option value="todos">Todos os projetos</option>
+                    {PROJETOS.map((p) => (
+                      <option key={p} value={p}>{p}</option>
+                    ))}
+                  </select>
+                </div>
+              </div>
+
+              <div className="overflow-hidden rounded-2xl border border-slate-200">
+                <table className="min-w-full divide-y divide-slate-200 text-sm">
+                  <thead className="bg-slate-50 text-left text-xs uppercase tracking-wide text-slate-500">
+                    <tr>
+                      <th className="px-4 py-3">Fábrica</th>
+                      <th className="px-4 py-3">Lote</th>
+                      <th className="px-4 py-3">Projeto</th>
+                      <th className="px-4 py-3">Produção</th>
+                      <th className="px-4 py-3">Ombreiras</th>
+                      <th className="px-4 py-3">Status</th>
+                    </tr>
+                  </thead>
+                  <tbody className="divide-y divide-slate-100 bg-white">
+                    {lotesComFiltro.map((lote) => (
+                      <tr key={lote.id} className="hover:bg-slate-50">
+                        <td className="px-4 py-3 text-slate-600">{fabricaNome(lote.fabricaId)}</td>
+                        <td className="px-4 py-3 font-semibold">
+                          <div>{lote.lote}</div>
+                          <div className="text-xs font-normal text-slate-500">{lote.pista} • Pedido {lote.pedido || "--"}</div>
+                        </td>
+                        <td className="px-4 py-3">{lote.projeto}</td>
+                        <td className="px-4 py-3 font-semibold">{Number(lote.totalProducao || 0).toLocaleString("pt-BR")}</td>
+                        <td className="px-4 py-3 text-slate-600">
+                          <div>{lote.tipoOmbreira || "--"}</div>
+                          <div className="text-xs text-slate-500">{lote.loteOmbreira || "Sem lote informado"}</div>
+                        </td>
+                        <td className="px-4 py-3">
+                          <span className="rounded-full bg-slate-100 px-3 py-1 text-xs font-medium text-slate-700">{lote.status}</span>
+                          {lote.motivo && <p className="mt-1 text-xs text-slate-500">{lote.motivo}</p>}
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            </div>
+          </div>
+
+          <aside className="space-y-6">
+            <form onSubmit={adicionarLote} className="rounded-2xl bg-white p-5 shadow-sm ring-1 ring-slate-200">
+              <div className="mb-4 flex items-center gap-2">
+                <div className="rounded-xl bg-slate-950 p-2 text-white"><Plus size={18} /></div>
+                <div>
+                  <h2 className="text-xl font-bold">Cadastrar lote</h2>
+                  <p className="text-sm text-slate-500">Campos principais do primeiro esboço.</p>
+                </div>
+              </div>
+
+              <div className="space-y-3">
+                <label className="block text-sm font-medium">
+                  Fábrica
+                  <select
+                    value={novo.fabricaId}
+                    onChange={(e) => setNovo({ ...novo, fabricaId: e.target.value })}
+                    className="mt-1 w-full rounded-xl border border-slate-300 px-3 py-2 outline-none focus:border-slate-900"
+                  >
+                    {FABRICAS.map((f) => (
+                      <option key={f.id} value={f.id}>{f.nome} - {f.cidade}/{f.uf}</option>
+                    ))}
+                  </select>
+                </label>
+
+                <label className="block text-sm font-medium">
+                  Projeto
+                  <select
+                    value={novo.projeto}
+                    onChange={(e) => setNovo({ ...novo, projeto: e.target.value })}
+                    className="mt-1 w-full rounded-xl border border-slate-300 px-3 py-2 outline-none focus:border-slate-900"
+                  >
+                    {PROJETOS.map((p) => (
+                      <option key={p} value={p}>{p}</option>
+                    ))}
+                  </select>
+                </label>
+
+                <div className="grid grid-cols-2 gap-3">
+                  <label className="block text-sm font-medium">
+                    Pista
+                    <input
+                      value={novo.pista}
+                      onChange={(e) => setNovo({ ...novo, pista: e.target.value })}
+                      placeholder="Ex.: Pista 01"
+                      className="mt-1 w-full rounded-xl border border-slate-300 px-3 py-2 outline-none focus:border-slate-900"
+                    />
+                  </label>
+                  <label className="block text-sm font-medium">
+                    Pedido
+                    <input
+                      value={novo.pedido}
+                      onChange={(e) => setNovo({ ...novo, pedido: e.target.value })}
+                      placeholder="N° pedido"
+                      className="mt-1 w-full rounded-xl border border-slate-300 px-3 py-2 outline-none focus:border-slate-900"
+                    />
+                  </label>
+                </div>
+
+                <label className="block text-sm font-medium">
+                  Lote
+                  <input
+                    value={novo.lote}
+                    onChange={(e) => setNovo({ ...novo, lote: e.target.value })}
+                    placeholder="Ex.: CVN-008/26"
+                    className="mt-1 w-full rounded-xl border border-slate-300 px-3 py-2 outline-none focus:border-slate-900"
+                  />
+                </label>
+
+                <div className="grid grid-cols-2 gap-3">
+                  <label className="block text-sm font-medium">
+                    Total da produção
+                    <input
+                      type="number"
+                      value={novo.totalProducao}
+                      onChange={(e) => setNovo({ ...novo, totalProducao: e.target.value })}
+                      className="mt-1 w-full rounded-xl border border-slate-300 px-3 py-2 outline-none focus:border-slate-900"
+                    />
+                  </label>
+                  <label className="block text-sm font-medium">
+                    Data fabricação
+                    <input
+                      type="date"
+                      value={novo.dataFabricacao}
+                      onChange={(e) => setNovo({ ...novo, dataFabricacao: e.target.value })}
+                      className="mt-1 w-full rounded-xl border border-slate-300 px-3 py-2 outline-none focus:border-slate-900"
+                    />
+                  </label>
+                </div>
+
+                <label className="block text-sm font-medium">
+                  Tipo de dormente
+                  <input
+                    value={novo.tipoDormente}
+                    onChange={(e) => setNovo({ ...novo, tipoDormente: e.target.value })}
+                    placeholder="Ex.: monobloco protendido"
+                    className="mt-1 w-full rounded-xl border border-slate-300 px-3 py-2 outline-none focus:border-slate-900"
+                  />
+                </label>
+
+                <div className="grid grid-cols-2 gap-3">
+                  <label className="block text-sm font-medium">
+                    Tipo ombreira
+                    <input
+                      value={novo.tipoOmbreira}
+                      onChange={(e) => setNovo({ ...novo, tipoOmbreira: e.target.value })}
+                      className="mt-1 w-full rounded-xl border border-slate-300 px-3 py-2 outline-none focus:border-slate-900"
+                    />
+                  </label>
+                  <label className="block text-sm font-medium">
+                    Lote ombreiras
+                    <input
+                      value={novo.loteOmbreira}
+                      onChange={(e) => setNovo({ ...novo, loteOmbreira: e.target.value })}
+                      className="mt-1 w-full rounded-xl border border-slate-300 px-3 py-2 outline-none focus:border-slate-900"
+                    />
+                  </label>
+                </div>
+              </div>
+
+              <button className="mt-5 inline-flex w-full items-center justify-center gap-2 rounded-xl bg-slate-950 px-4 py-3 text-sm font-bold text-white hover:bg-slate-800">
+                <Plus size={16} /> Adicionar lote ao ciclo
+              </button>
+            </form>
+
+            <div className="rounded-2xl bg-white p-5 shadow-sm ring-1 ring-slate-200">
+              <div className="mb-4 flex items-center gap-2">
+                <div className="rounded-xl bg-slate-100 p-2 text-slate-700"><Factory size={18} /></div>
+                <div>
+                  <h2 className="text-xl font-bold">Fluxo pensado</h2>
+                  <p className="text-sm text-slate-500">Como o sistema deve trabalhar.</p>
+                </div>
+              </div>
+              <ol className="space-y-3 text-sm text-slate-700">
+                <li><strong>1.</strong> Usuário cadastra cada lote produzido por pista.</li>
+                <li><strong>2.</strong> O sistema agrupa por fábrica + projeto.</li>
+                <li><strong>3.</strong> O sistema soma dormentes e quantidade de lotes do ciclo atual.</li>
+                <li><strong>4.</strong> Ao chegar perto de 2.000 ou 10 lotes, aparece alerta amarelo.</li>
+                <li><strong>5.</strong> Ao atingir 2.000 ou 10 lotes, aparece alerta vermelho de ensaio.</li>
+                <li><strong>6.</strong> Após registrar o resultado, a série fecha e a próxima contagem começa do zero.</li>
+              </ol>
+            </div>
+
+            <div className="rounded-2xl bg-white p-5 shadow-sm ring-1 ring-slate-200">
+              <h2 className="text-xl font-bold">Histórico de ensaios</h2>
+              <p className="mb-4 text-sm text-slate-500">Séries fechadas depois do resultado.</p>
+              {ensaios.length === 0 ? (
+                <div className="rounded-xl bg-slate-50 p-4 text-sm text-slate-500">Nenhum ensaio registrado neste esboço.</div>
+              ) : (
+                <div className="space-y-3">
+                  {ensaios.map((ensaio) => (
+                    <div key={ensaio.id} className="rounded-xl border border-slate-200 p-3 text-sm">
+                      <div className="flex items-center justify-between gap-2">
+                        <strong>{ensaio.projeto}</strong>
+                        <span className={classNames("rounded-full px-2 py-1 text-xs font-bold", ensaio.resultado === "Aprovado" ? "bg-emerald-100 text-emerald-800" : "bg-red-100 text-red-800")}>{ensaio.resultado}</span>
+                      </div>
+                      <p className="mt-1 text-slate-500">{fabricaNome(ensaio.fabricaId)} • Ciclo {ensaio.ciclo} • {ensaio.data}</p>
+                      <p className="mt-1 text-slate-500">{ensaio.totalLotes} lotes • {ensaio.totalDormentes.toLocaleString("pt-BR")} dormentes</p>
+                      <p className="mt-2 text-xs text-slate-500">{ensaio.lotesDaSerie.join(" • ")}</p>
+                    </div>
+                  ))}
+                </div>
+              )}
+            </div>
+          </aside>
+        </section>
+      </main>
+
+      {grupoSelecionado && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-950/70 p-4">
+          <div className="w-full max-w-xl rounded-3xl bg-white p-6 shadow-2xl">
+            <div className="flex items-start justify-between gap-4">
+              <div>
+                <h2 className="text-2xl font-bold">Registrar resultado do ensaio</h2>
+                <p className="mt-1 text-sm text-slate-500">
+                  Esta ação fecha a série atual e reinicia a contagem para {grupoSelecionado.projeto} em {fabricaNome(grupoSelecionado.fabricaId)}.
+                </p>
+              </div>
+              {resultadoEnsaio === "Aprovado" ? <CheckCircle2 className="text-emerald-600" /> : <AlertTriangle className="text-red-600" />}
+            </div>
+
+            <div className="mt-5 rounded-2xl bg-slate-50 p-4 text-sm">
+              <p><strong>Ciclo:</strong> {grupoSelecionado.ciclo}</p>
+              <p><strong>Total:</strong> {grupoSelecionado.lotes.length} lotes • {grupoSelecionado.totalDormentes.toLocaleString("pt-BR")} dormentes</p>
+              <p className="mt-2 text-slate-600"><strong>Lotes:</strong> {grupoSelecionado.lotes.map((l) => l.lote).join(" • ")}</p>
+            </div>
+
+            <label className="mt-5 block text-sm font-medium">
+              Resultado
+              <select
+                value={resultadoEnsaio}
+                onChange={(e) => setResultadoEnsaio(e.target.value)}
+                className="mt-1 w-full rounded-xl border border-slate-300 px-3 py-2 outline-none focus:border-slate-900"
+              >
+                <option>Aprovado</option>
+                <option>Reprovado - alerta</option>
+                <option>Reprovado - bloquear lote/série</option>
+              </select>
+            </label>
+
+            <label className="mt-4 block text-sm font-medium">
+              Motivo / especificação
+              <textarea
+                value={motivoEnsaio}
+                onChange={(e) => setMotivoEnsaio(e.target.value)}
+                placeholder="Ex.: aprovado conforme ruptura 28 dias; ou reprovação por resultado fora da especificação..."
+                rows={4}
+                className="mt-1 w-full rounded-xl border border-slate-300 px-3 py-2 outline-none focus:border-slate-900"
+              />
+            </label>
+
+            <div className="mt-6 flex flex-col-reverse gap-3 sm:flex-row sm:justify-end">
+              <button
+                onClick={() => setGrupoSelecionado(null)}
+                className="rounded-xl border border-slate-300 px-4 py-2.5 text-sm font-semibold hover:bg-slate-50"
+              >
+                Cancelar
+              </button>
+              <button
+                onClick={registrarEnsaio}
+                className="inline-flex items-center justify-center gap-2 rounded-xl bg-slate-950 px-4 py-2.5 text-sm font-bold text-white hover:bg-slate-800"
+              >
+                <RotateCcw size={16} /> Fechar série e reiniciar contagem
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+    </div>
+  );
+}
