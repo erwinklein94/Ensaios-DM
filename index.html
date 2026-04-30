@@ -1707,7 +1707,7 @@
         <div class="section-title">
           <div>
             <h2>Report</h2>
-            <p>Configure o recorte dos dados que entrarão no PDF: fábrica, projeto e data de fabricação. Deixe em branco ou selecione “todos” para exportar tudo.</p>
+            <p>Configure o recorte dos dados que entrarão no PDF: fábrica, projeto e período de fabricação. O período é preenchido automaticamente com a semana mais recente dos dados.</p>
           </div>
           <button class="btn btn-accent" id="exportPdfReportBtn" type="button">Exportar PDF</button>
         </div>
@@ -1725,12 +1725,17 @@
               <select id="reportProject"></select>
             </div>
             <div class="field">
-              <label for="reportDate">Data de fabricação</label>
-              <input id="reportDate" type="date" />
+              <label for="reportStartDate">Data inicial</label>
+              <input id="reportStartDate" type="date" />
+            </div>
+            <div class="field">
+              <label for="reportEndDate">Data final</label>
+              <input id="reportEndDate" type="date" />
             </div>
           </div>
           <div class="modal-actions report-actions" style="justify-content:flex-start">
             <button class="btn btn-outline" id="clearReportFiltersBtn" type="button">Limpar recorte</button>
+            <button class="btn btn-outline" id="resetReportPeriodBtn" type="button">Semana mais atual</button>
             <button class="btn btn-primary" type="button" data-tab-target="painel">Ver painel</button>
           </div>
         </div>
@@ -1948,7 +1953,8 @@
     const DEFAULT_REPORT_FILTERS = {
       factory: "todas",
       project: "todos",
-      date: ""
+      startDate: "",
+      endDate: ""
     };
 
     const DEFAULT_SMART_FILTERS = {
@@ -2579,6 +2585,45 @@
       return { startDate: addDays(endDate, -6), endDate };
     }
 
+    function defaultReportFilters() {
+      const endDate = latestLotDate();
+      return { factory: "todas", project: "todos", startDate: addDays(endDate, -6), endDate };
+    }
+
+    function normalizeReportFilters(filters = state.reportFilters) {
+      const defaults = defaultReportFilters();
+      const legacyDate = filters && filters.date ? filters.date : "";
+      const merged = { ...defaults, ...(filters || {}) };
+      delete merged.date;
+      if (legacyDate && !merged.startDate && !merged.endDate) {
+        merged.startDate = legacyDate;
+        merged.endDate = legacyDate;
+      }
+      if (!merged.startDate) merged.startDate = defaults.startDate;
+      if (!merged.endDate) merged.endDate = defaults.endDate;
+      if (merged.startDate > merged.endDate) {
+        const temp = merged.startDate;
+        merged.startDate = merged.endDate;
+        merged.endDate = temp;
+      }
+      return merged;
+    }
+
+    function ensureReportFilters() {
+      state.reportFilters = normalizeReportFilters(state.reportFilters);
+    }
+
+    function resetReportPeriod() {
+      state.reportFilters = { ...normalizeReportFilters(state.reportFilters), ...defaultReportFilters() };
+      persist();
+      renderReportOptions();
+    }
+
+    function dateInRange(date, startDate, endDate) {
+      if (!date) return false;
+      return (!startDate || date >= startDate) && (!endDate || date <= endDate);
+    }
+
     function ensureSmartFilters() {
       const defaults = defaultSmartFilters();
       state.smartFilters = { ...DEFAULT_SMART_FILTERS, ...(state.smartFilters || {}) };
@@ -2905,11 +2950,12 @@
     function renderReportOptions() {
       const factorySelect = document.getElementById("reportFactory");
       const projectSelect = document.getElementById("reportProject");
-      const dateInput = document.getElementById("reportDate");
+      const startInput = document.getElementById("reportStartDate");
+      const endInput = document.getElementById("reportEndDate");
       const summary = document.getElementById("reportSummary");
-      if (!factorySelect || !projectSelect || !dateInput || !summary) return;
+      if (!factorySelect || !projectSelect || !startInput || !endInput || !summary) return;
 
-      state.reportFilters = { ...DEFAULT_REPORT_FILTERS, ...(state.reportFilters || {}) };
+      ensureReportFilters();
 
       const factoryIds = uniqueSorted([
         ...state.factories.map(factory => factory.id),
@@ -2925,14 +2971,15 @@
         return `<option value="${escapeHtml(factoryId)}" ${selected}>${escapeHtml(factoryLabel(factoryId))}</option>`;
       }).join("");
       projectSelect.innerHTML = `<option value="todos">Todos os projetos</option>` + projects.map(project => `<option value="${escapeHtml(project)}" ${state.reportFilters.project === project ? "selected" : ""}>${escapeHtml(project)}</option>`).join("");
-      dateInput.value = state.reportFilters.date || "";
+      startInput.value = state.reportFilters.startDate || "";
+      endInput.value = state.reportFilters.endDate || "";
 
       const lots = reportLotsSource();
       const stats = reportStats(lots);
       const groups = reportGroupsForLots(lots);
       const filterLabel = reportFilterLabel(lots);
       if (!lots.length) {
-        summary.innerHTML = `<div class="empty"><strong>Nenhum dado para o recorte selecionado</strong>Altere a fábrica, o projeto ou a data para gerar o PDF.</div>`;
+        summary.innerHTML = `<div class="empty"><strong>Nenhum dado para o recorte selecionado</strong>Altere a fábrica, o projeto ou o período para gerar o PDF.</div>`;
         return;
       }
 
@@ -2944,12 +2991,13 @@
           <div class="mini-kpi"><small>Aprovação</small><strong>${formatPercent(stats.approval)}</strong></div>
           <div class="mini-kpi"><small>Séries no recorte</small><strong>${formatNumber(groups.length)}</strong></div>
         </div>
-        <div class="report-note">O botão <strong>Exportar PDF</strong> usa exatamente este recorte. A data é aplicada sobre a <strong>data de fabricação</strong> do lote; quando ela fica vazia, entram todas as datas.</div>
+        <div class="report-note">O botão <strong>Exportar PDF</strong> usa exatamente este recorte. O período é aplicado sobre a <strong>data de fabricação</strong> do lote e já vem preenchido com a semana mais recente dos dados.</div>
       `;
     }
 
     function updateReportFilter(key, value) {
-      state.reportFilters = { ...DEFAULT_REPORT_FILTERS, ...(state.reportFilters || {}), [key]: value };
+      state.reportFilters = { ...normalizeReportFilters(state.reportFilters), [key]: value };
+      ensureReportFilters();
       persist();
       renderReportOptions();
     }
@@ -3307,13 +3355,15 @@
     }
 
     function reportLotsSource() {
+      ensureReportFilters();
       const filters = { ...DEFAULT_REPORT_FILTERS, ...(state.reportFilters || {}) };
       return state.lots.filter(lot => {
         if (number(lot.productionTotal) <= 0) return false;
         const matchFactory = filters.factory === "todas" || lot.factoryId === filters.factory;
         const matchProject = filters.project === "todos" || lot.project === filters.project;
-        const matchDate = !filters.date || reportDateForLot(lot) === filters.date;
-        return matchFactory && matchProject && matchDate;
+        const lotDate = reportDateForLot(lot);
+        const matchPeriod = dateInRange(lotDate, filters.startDate, filters.endDate);
+        return matchFactory && matchProject && matchPeriod;
       }).sort(compareLotsBySequence);
     }
 
@@ -3390,12 +3440,12 @@
       const rejected = lots.reduce((sum, lot) => sum + rejectedForLot(lot), 0);
       const lotBaseKeys = new Set(lots.map(lot => baseKey(lot.factoryId, lot.project)));
       const lotIds = new Set(lots.map(lot => lot.id));
-      const filters = { ...DEFAULT_REPORT_FILTERS, ...(state.reportFilters || {}) };
+      const filters = normalizeReportFilters(state.reportFilters);
       let relatedTests = state.tests.filter(test => lotBaseKeys.has(test.baseKey || baseKey(test.factoryId, test.project)));
-      if (filters.date) {
+      if (filters.startDate || filters.endDate) {
         relatedTests = relatedTests.filter(test => {
           const linkedLot = Array.isArray(test.lots) && test.lots.some(item => lotIds.has(item.id));
-          return test.date === filters.date || linkedLot || lotIds.has(test.testLotId);
+          return dateInRange(test.date, filters.startDate, filters.endDate) || linkedLot || lotIds.has(test.testLotId);
         });
       }
       const testRefs = new Set(relatedTests.map(test => test.id));
@@ -3422,11 +3472,11 @@
     }
 
     function reportFilterLabel(lots) {
-      const filters = { ...DEFAULT_REPORT_FILTERS, ...(state.reportFilters || {}) };
+      const filters = normalizeReportFilters(state.reportFilters);
       const parts = [];
       if (filters.factory !== "todas") parts.push(factoryLabel(filters.factory));
       if (filters.project !== "todos") parts.push(filters.project);
-      if (filters.date) parts.push(`Data: ${formatDateBr(filters.date)}`);
+      if (filters.startDate || filters.endDate) parts.push(`Período: ${formatDateBr(filters.startDate)} a ${formatDateBr(filters.endDate)}`);
       if (parts.length) return parts.join(" • ");
       const factories = uniqueSorted(lots.map(lot => factoryLabel(lot.factoryId))).slice(0, 3);
       return factories.length ? `Todos os dados cadastrados • ${factories.join(" • ")}${uniqueSorted(lots.map(lot => lot.factoryId)).length > 3 ? " • ..." : ""}` : "Todos os dados cadastrados";
@@ -3699,8 +3749,8 @@
       const report = document.getElementById("pdfReport");
       report.innerHTML = buildPdfReport();
       window.__dmOriginalTitle = document.title;
-      const filters = { ...DEFAULT_REPORT_FILTERS, ...(state.reportFilters || {}) };
-      const datePart = filters.date || today();
+      const filters = normalizeReportFilters(state.reportFilters);
+      const datePart = filters.startDate && filters.endDate ? `${filters.startDate}_a_${filters.endDate}` : today();
       document.title = `relatorio-dormentes-${datePart}`;
       document.body.classList.add("pdf-export-mode");
       showToast("Relatório preparado. Na janela de impressão, escolha Salvar como PDF em orientação Retrato.");
@@ -3946,7 +3996,7 @@
           state.factories = payload.factories;
           state.projects = payload.projects;
           state.config = payload.config || DEFAULT_CONFIG;
-          state.reportFilters = payload.reportFilters || DEFAULT_REPORT_FILTERS;
+          state.reportFilters = normalizeReportFilters(payload.reportFilters || DEFAULT_REPORT_FILTERS);
           renderAll();
           showToast("Backup importado.");
         } catch (error) {
@@ -3963,7 +4013,7 @@
       state.factories = DEFAULT_FACTORIES;
       state.projects = DEFAULT_PROJECTS;
       state.config = DEFAULT_CONFIG;
-      state.reportFilters = DEFAULT_REPORT_FILTERS;
+      state.reportFilters = defaultReportFilters();
       state.form = { ...EMPTY_LOT };
       state.editingId = null;
       renderAll();
@@ -4075,9 +4125,11 @@
       document.getElementById("exportPdfReportBtn").addEventListener("click", exportPdf);
       document.getElementById("reportFactory").addEventListener("change", event => updateReportFilter("factory", event.target.value));
       document.getElementById("reportProject").addEventListener("change", event => updateReportFilter("project", event.target.value));
-      document.getElementById("reportDate").addEventListener("change", event => updateReportFilter("date", event.target.value));
+      document.getElementById("reportStartDate").addEventListener("change", event => updateReportFilter("startDate", event.target.value));
+      document.getElementById("reportEndDate").addEventListener("change", event => updateReportFilter("endDate", event.target.value));
+      document.getElementById("resetReportPeriodBtn").addEventListener("click", resetReportPeriod);
       document.getElementById("clearReportFiltersBtn").addEventListener("click", () => {
-        state.reportFilters = { ...DEFAULT_REPORT_FILTERS };
+        state.reportFilters = defaultReportFilters();
         persist();
         renderReportOptions();
       });
