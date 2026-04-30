@@ -440,6 +440,11 @@
       font-size: 20px;
       font-weight: 950;
     }
+    .start-card.primary-action .icon {
+      background: var(--green-2);
+      color: var(--navy-3);
+      box-shadow: 0 10px 22px rgba(0, 216, 102, .22);
+    }
     .start-card strong {
       display: block;
       font-size: 18px;
@@ -948,6 +953,12 @@
       color: #001728;
     }
 
+    body.dark-theme .start-card.primary-action .icon {
+      background: #00d866;
+      color: #001728;
+      box-shadow: 0 10px 22px rgba(0, 216, 102, .28);
+    }
+
     body.dark-theme .btn-danger,
     body.dark-theme .badge.danger {
       background: #0e4b74;
@@ -1030,7 +1041,7 @@
 
   </style>
 </head>
-<body>
+<body class="dark-theme">
   <div class="topbar">
     <div class="shell">
       <span>Controle de inspeção de dormentes de concreto</span>
@@ -1054,7 +1065,7 @@
           <input type="file" id="importCsvTop" accept=".csv,text/csv" style="display:none" />
           <button class="btn btn-light" id="exportCsvTop">Exportar CSV</button>
           <button class="btn btn-accent" id="exportBackupTop">Backup JSON</button>
-          <button class="theme-toggle" id="themeToggle" type="button" aria-label="Ativar tema escuro" title="Tema escuro">◐</button>
+          <button class="theme-toggle" id="themeToggle" type="button" aria-label="Ativar tema claro" title="Tema claro">☀</button>
         </div>
       </div>
     </div>
@@ -1080,17 +1091,17 @@
         </div>
 
         <div class="start-grid">
-          <button class="start-card highlight" type="button" data-tab-target="cadastro">
+          <button class="start-card highlight primary-action" type="button" data-tab-target="cadastro">
             <span class="icon">＋</span>
             <span><strong>Cadastrar lote</strong><span>Adicionar produção, fábrica, projeto, datas, ombreiras, USP e status.</span></span>
           </button>
 
-          <button class="start-card" type="button" data-start-workflow="ensaio">
+          <button class="start-card primary-action" type="button" data-start-workflow="ensaio">
             <span class="icon">✓</span>
             <span><strong>Cadastrar resultado de ensaio de dormente</strong><span>Registrar aprovação, reprovação, iAuditor e fechar a série ativa.</span></span>
           </button>
 
-          <button class="start-card" type="button" data-start-workflow="slump">
+          <button class="start-card primary-action" type="button" data-start-workflow="slump">
             <span class="icon">⌁</span>
             <span><strong>Registrar slump test</strong><span>Ir direto aos campos de abatimento e espalhamento do concreto fresco.</span></span>
           </button>
@@ -2760,7 +2771,7 @@
     }
 
     function initTheme() {
-      const savedTheme = localStorage.getItem("dm_theme_v1") || "light";
+      const savedTheme = localStorage.getItem("dm_theme_v1") || "dark";
       applyTheme(savedTheme);
     }
 
