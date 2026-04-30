@@ -1004,6 +1004,48 @@
       background: #0e4b74;
     }
 
+
+    @media print {
+      .topbar,
+      .tabs,
+      .hero-actions,
+      .modal-backdrop,
+      .toast,
+      .btn,
+      button {
+        display: none !important;
+      }
+      body {
+        background: #fff !important;
+        color: #001f35 !important;
+      }
+      .hero {
+        background: #fff !important;
+        color: #001f35 !important;
+        border-bottom: 1px solid #d7e5ec;
+      }
+      .brand-row,
+      .section-card,
+      .insight-card,
+      .history-card,
+      .table-wrap {
+        box-shadow: none !important;
+        border-color: #d7e5ec !important;
+        background: #fff !important;
+      }
+      .header-copy,
+      .header-copy .eyebrow,
+      .header-copy h1,
+      .header-copy p,
+      h1, h2, h3, p, small, strong, td, th, label {
+        color: #001f35 !important;
+        text-shadow: none !important;
+      }
+      main {
+        padding-top: 16px !important;
+      }
+    }
+
     @media (max-width: 1120px) {
       .settings-grid, .insight-grid { grid-template-columns: 1fr; }
       .brand-row { grid-template-columns: auto 1fr; }
@@ -1061,10 +1103,9 @@
           <p id="heroRuleText">Carregando regra...</p>
         </div>
         <div class="hero-actions">
-          <label class="btn btn-light" for="importCsvTop">Importar CSV da planilha</label>
+          <label class="btn btn-light" for="importCsvTop">Importar CSV</label>
           <input type="file" id="importCsvTop" accept=".csv,text/csv" style="display:none" />
-          <button class="btn btn-light" id="exportCsvTop">Exportar CSV</button>
-          <button class="btn btn-accent" id="exportBackupTop">Backup JSON</button>
+          <button class="btn btn-accent" id="exportPdfTop" type="button">Exportar PDF</button>
           <button class="theme-toggle" id="themeToggle" type="button" aria-label="Ativar tema claro" title="Tema claro">☀</button>
         </div>
       </div>
@@ -2453,6 +2494,11 @@
       download(`controle-dormentes-${today()}.csv`, content, "text/csv;charset=utf-8");
     }
 
+    function exportPdf() {
+      showToast("Abrindo exportação. Na janela de impressão, escolha Salvar como PDF.");
+      setTimeout(() => window.print(), 180);
+    }
+
     function exportBackup() {
       const payload = {
         exportedAt: new Date().toISOString(),
@@ -2807,10 +2853,9 @@
       document.getElementById("testForm").addEventListener("submit", registerTest);
       document.getElementById("testModal").addEventListener("click", event => { if (event.target.id === "testModal") closeTestModal(); });
 
-      document.getElementById("exportCsvTop").addEventListener("click", exportCsv);
+      document.getElementById("exportPdfTop").addEventListener("click", exportPdf);
       document.getElementById("exportCsvBtn").addEventListener("click", exportCsv);
       document.getElementById("exportCsvConfig").addEventListener("click", exportCsv);
-      document.getElementById("exportBackupTop").addEventListener("click", exportBackup);
       document.getElementById("themeToggle").addEventListener("click", toggleTheme);
       document.getElementById("exportBackupConfig").addEventListener("click", exportBackup);
       document.getElementById("importBackupInput").addEventListener("change", event => importBackup(event.target.files[0]));
