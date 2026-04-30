@@ -2117,6 +2117,8 @@
       toAnalyzeSleepers: "",
       failedSleepers: "",
       approvedProductionTotal: "",
+      testEligibility: "",
+      testDate: "",
       status: "",
       reason: ""
     };
@@ -2756,7 +2758,7 @@
       series.innerHTML = `
         <div class="series-table-wrap">
           <table class="series-table">
-            <thead><tr><th>Fábrica</th><th>Projeto</th><th>Ciclo</th><th>Lotes</th><th>Dormentes</th><th>Lote a ensaiar</th><th>Gatilho</th><th>Situação</th></tr></thead>
+            <thead><tr><th>Fábrica</th><th>Projeto</th><th>Ciclo</th><th>Lotes</th><th>Dormentes</th><th>Lote a ensaiar</th><th>Data do ensaio</th><th>Gatilho</th><th>Situação</th></tr></thead>
             <tbody>${seriesRows.map(row => {
               const canShowTestLot = isActionableGroup(row);
               const lots = row.lots.map(lot => canShowTestLot && row.testLot && lot.id === row.testLot.id ? `★ ${lot.lot}` : lot.lot).join(" • ");
@@ -2764,6 +2766,12 @@
               const situation = row.closedByTest ? "Fechada por ensaio" : row.isLatest ? row.alert.level : "Histórico calculado";
               const tone = situation === "ENSAIAR AGORA" ? "danger" : situation === "PRÓXIMO DO ENSAIO" ? "warning" : "gray";
               const testLotCell = canShowTestLot ? `<span class="test-lot-table-badge">${escapeHtml(testLotLabel(row))}</span>` : `<span class="badge gray">Aguardando limite</span>`;
+              const favorableTestInfo = favorableTestInfoForGroup(row);
+              const testDateCell = favorableTestInfo.favorable
+                ? favorableTestInfo.date
+                  ? `<strong>${formatDateBr(favorableTestInfo.date)}</strong><div class="tiny muted">CSV: favorável ao ensaio</div>`
+                  : `<span class="badge warning">Favorável, sem data</span>`
+                : `<span class="badge gray">--</span>`;
               return `<tr>
                 <td>${escapeHtml(factoryLabel(row.factoryId))}</td>
                 <td><strong>${escapeHtml(row.project)}</strong><div class="tiny muted">${escapeHtml(lots)}</div></td>
@@ -2771,6 +2779,7 @@
                 <td>${row.lots.length}</td>
                 <td>${formatNumber(row.totalSleepers)}</td>
                 <td>${testLotCell}</td>
+                <td>${testDateCell}</td>
                 <td>${trigger}</td>
                 <td><span class="badge ${tone}">${situation}</span></td>
               </tr>`;
@@ -3314,7 +3323,7 @@
         "tempo_cura_horas", "ruptura_7_comp", "ruptura_14_comp", "ruptura_14_tracao", "ruptura_28_comp", "ruptura_28_tracao",
         "comp_axial_7", "comp_axial_14", "tracao_flexao_14", "comp_axial_28", "tracao_flexao_28",
         "serie_ensaio_liberacao", "ensaio_iauditor", "dormentes_ensaiados", "dormentes_a_serem_analisados",
-        "dormentes_reprovados", "total_producao_aprovado", "status", "motivo_especificacao", "ciclo"
+        "dormentes_reprovados", "total_producao_aprovado", "lote_a_ensaiar", "data_ensaio", "status", "motivo_especificacao", "ciclo"
       ];
       const rows = state.lots.map(lot => {
         const factory = state.factories.find(item => item.id === lot.factoryId);
@@ -3327,7 +3336,7 @@
           lot.detensionStart, lot.detensionMiddle, lot.detensionEnd, lot.cureHours, lot.break7CompDate, lot.break14CompDate, lot.break14TractionDate,
           lot.break28CompDate, lot.break28TractionDate, lot.compAxial7, lot.compAxial14, lot.flexTraction14, lot.compAxial28, lot.flexTraction28,
           lot.releaseTestSeries, lot.iauditorTest, lot.testedSleepers, lot.toAnalyzeSleepers, lot.failedSleepers, lot.approvedProductionTotal,
-          lot.status, lot.reason, lot.cycle
+          lot.testEligibility, lot.testDate, lot.status, lot.reason, lot.cycle
         ];
       });
       const content = [headers, ...rows].map(row => row.map(csvEscape).join(";")).join("\n");
@@ -3811,6 +3820,44 @@
       return String(value || "").trim().normalize("NFD").replace(/[\u0300-\u036f]/g, "").toUpperCase();
     }
 
+    function csvHeaderKey(value) {
+      return normalizeText(value).replace(/[^A-Z0-9]+/g, " ").trim();
+    }
+
+    function findCsvColumn(headers, aliases) {
+      const normalizedHeaders = headers.map(csvHeaderKey);
+      const normalizedAliases = aliases.map(csvHeaderKey);
+      let index = normalizedHeaders.findIndex(header => normalizedAliases.includes(header));
+      if (index >= 0) return index;
+      return normalizedHeaders.findIndex(header => normalizedAliases.some(alias => header.includes(alias) || alias.includes(header)));
+    }
+
+    function csvCell(row, index, fallbackIndex = -1) {
+      if (index >= 0) return row[index];
+      if (fallbackIndex >= 0) return row[fallbackIndex];
+      return "";
+    }
+
+    function isFavorableToTest(value) {
+      const text = normalizeText(value);
+      return text.includes("FAVORAVEL") && text.includes("ENSAIO");
+    }
+
+    function testDateForLot(lot) {
+      return lot ? (lot.testDate || lot.testDateRaw || lot.releaseTestDate || "") : "";
+    }
+
+    function favorableTestInfoForGroup(group) {
+      const lots = [];
+      if (group && group.testLot) lots.push(group.testLot);
+      if (group && Array.isArray(group.lots)) lots.push(...group.lots);
+      const uniqueLots = lots.filter((lot, index, arr) => lot && arr.findIndex(item => item && item.id === lot.id) === index);
+      const favorableLot = uniqueLots.find(lot => isFavorableToTest(lot.testEligibility || lot.lotToTest || lot.loteAEnsaiar));
+      return favorableLot
+        ? { favorable: true, lot: favorableLot, date: testDateForLot(favorableLot) }
+        : { favorable: false, lot: null, date: "" };
+    }
+
     function parseCsvNumber(value) {
       const text = String(value || "").trim();
       if (!text || text === "_" || text.includes("#REF")) return 0;
@@ -3895,6 +3942,22 @@
           const headerIndex = rows.findIndex(row => row.some(cell => normalizeText(cell) === "LOTE") && row.some(cell => normalizeText(cell).includes("TOTAL DA PRODUCAO")));
           if (headerIndex < 0) throw new Error("Cabeçalho não encontrado");
           const dataRows = rows.slice(headerIndex + 1);
+          const headers = rows[headerIndex] || [];
+          const lotToTestIndex = findCsvColumn(headers, [
+            "lote a ensaiar",
+            "lote a ser ensaiado",
+            "lote para ensaio",
+            "lote do ensaio",
+            "status lote a ensaiar"
+          ]);
+          const testDateIndex = findCsvColumn(headers, [
+            "data do ensaio",
+            "data de ensaio",
+            "data ensaio",
+            "data prevista do ensaio",
+            "previsao do ensaio",
+            "previsão do ensaio"
+          ]);
           const imported = [];
           dataRows.forEach((row, index) => {
             const lotCode = String(row[3] || "").trim();
@@ -3909,6 +3972,8 @@
               if (approvedRaw.includes("#REF")) importWarning = "#REF! em produção aprovada";
             }
             const manufactureDate = parseCsvDate(row[7]);
+            const testEligibility = String(csvCell(row, lotToTestIndex, 44) || "").trim().replace(/^_$/, "");
+            const testDate = parseCsvDate(csvCell(row, testDateIndex));
             imported.push({
               ...EMPTY_LOT,
               id: id("csv"),
@@ -3958,6 +4023,8 @@
               toAnalyzeSleepers: parseCsvNumber(row[40]) || "",
               failedSleepers: failedSleepers || "",
               approvedProductionTotal: approved,
+              testEligibility,
+              testDate,
               status: normalizeCsvStatus(row[43], productionTotal),
               reason: String(row[45] || "").trim(),
               importWarning,
