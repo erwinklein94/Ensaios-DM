@@ -630,6 +630,68 @@
     .series-table { width: 100%; min-width: 680px; }
     .series-table-wrap { margin-top: 14px; overflow-x: auto; border: 1px solid var(--line); clip-path: var(--notch-sm); }
     .issue-pill { display: inline-flex; margin-top: 8px; clip-path: var(--notch-sm); padding: 5px 9px; background: var(--amber-bg); color: var(--amber); font-size: 11px; font-weight: 900; }
+
+    .test-lot-callout {
+      margin-top: 14px;
+      padding: 14px;
+      clip-path: var(--notch-sm);
+      border: 1px solid rgba(0, 216, 102, .45);
+      background: linear-gradient(135deg, rgba(0,216,102,.16), rgba(8,169,223,.10));
+      position: relative;
+      z-index: 1;
+    }
+    .test-lot-callout small {
+      display: block;
+      color: var(--muted);
+      font-size: 11px;
+      font-weight: 950;
+      letter-spacing: .06em;
+      text-transform: uppercase;
+      margin-bottom: 5px;
+    }
+    .test-lot-callout strong {
+      display: block;
+      color: var(--navy);
+      font-size: 22px;
+      line-height: 1.12;
+      letter-spacing: -.035em;
+    }
+    .test-lot-callout span {
+      display: block;
+      color: var(--muted);
+      font-size: 12px;
+      line-height: 1.45;
+      margin-top: 6px;
+    }
+    .test-lot-chip {
+      display: inline-flex;
+      align-items: center;
+      gap: 5px;
+      margin: 3px 5px 3px 0;
+      clip-path: var(--notch-sm);
+      padding: 6px 10px;
+      background: var(--green-2);
+      color: var(--navy-3);
+      font-weight: 950;
+      line-height: 1.2;
+    }
+    .test-lot-chip::before { content: "★"; }
+    .test-lot-row td {
+      background: rgba(0, 216, 102, .11);
+      border-top: 2px solid rgba(0, 216, 102, .58);
+      border-bottom: 2px solid rgba(0, 216, 102, .42);
+    }
+    .test-lot-row:hover td { background: rgba(0, 216, 102, .17); }
+    .test-lot-table-badge {
+      display: inline-flex;
+      margin-top: 8px;
+      clip-path: var(--notch-sm);
+      padding: 6px 10px;
+      background: var(--green-2);
+      color: var(--navy-3);
+      font-size: 11px;
+      font-weight: 950;
+    }
     .import-note { margin-top: 12px; padding: 13px; clip-path: var(--notch-sm); background: #e7f9ff; border: 1px solid var(--line); color: var(--muted); font-size: 13px; line-height: 1.55; }
 
     .form-section {
@@ -988,6 +1050,15 @@
       color: #eaf9ff;
     }
 
+
+    body.dark-theme .test-lot-callout {
+      background: linear-gradient(135deg, rgba(0,216,102,.19), rgba(57,198,238,.12));
+      border-color: rgba(0, 216, 102, .54);
+    }
+    body.dark-theme .test-lot-callout strong { color: #f6fdff; }
+    body.dark-theme .test-lot-row td { background: rgba(0, 216, 102, .13); }
+    body.dark-theme .test-lot-row:hover td { background: rgba(0, 216, 102, .19); }
+
     body.dark-theme .form-footer,
     body.dark-theme .toast {
       background: #001728;
@@ -1004,6 +1075,379 @@
       background: #0e4b74;
     }
 
+
+
+
+    /* Relatório executivo em PDF: usa os dados do painel, mas com a identidade visual do site. */
+    .pdf-report { display: none; }
+
+    @media print {
+      @page { size: A4 landscape; margin: 9mm; }
+
+      body.pdf-export-mode {
+        background: #f3fbff !important;
+        color: #003b68 !important;
+        -webkit-print-color-adjust: exact !important;
+        print-color-adjust: exact !important;
+      }
+
+      body.pdf-export-mode > .topbar,
+      body.pdf-export-mode > .hero,
+      body.pdf-export-mode > .tabs,
+      body.pdf-export-mode > main,
+      body.pdf-export-mode > .modal-backdrop,
+      body.pdf-export-mode > .toast {
+        display: none !important;
+      }
+
+      body.pdf-export-mode .pdf-report {
+        display: block !important;
+        padding: 0 !important;
+        margin: 0 !important;
+        width: 100% !important;
+      }
+
+      body.pdf-export-mode .pdf-report,
+      body.pdf-export-mode .pdf-report * {
+        box-sizing: border-box !important;
+        -webkit-print-color-adjust: exact !important;
+        print-color-adjust: exact !important;
+      }
+
+      body.pdf-export-mode .pdf-page {
+        min-height: 190mm;
+        page-break-after: always;
+        break-after: page;
+        background: #f3fbff !important;
+        color: #003b68 !important;
+        font-family: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif !important;
+        position: relative;
+        overflow: hidden;
+      }
+
+      body.pdf-export-mode .pdf-page:last-child { page-break-after: auto; break-after: auto; }
+
+      body.pdf-export-mode .pdf-page::before {
+        content: "";
+        position: absolute;
+        inset: -70px auto auto -80px;
+        width: 330px;
+        height: 330px;
+        border-radius: 50%;
+        background: rgba(8,169,223,.10) !important;
+        z-index: 0;
+      }
+
+      body.pdf-export-mode .pdf-content { position: relative; z-index: 1; }
+
+      body.pdf-export-mode .pdf-report-header {
+        display: grid;
+        grid-template-columns: 150px 1fr auto;
+        gap: 16px;
+        align-items: center;
+        padding: 13px 16px;
+        background: linear-gradient(120deg, #002f55 0%, #003b68 58%, #08a9df 100%) !important;
+        color: #fff !important;
+        clip-path: var(--notch-sm);
+        margin-bottom: 12px;
+      }
+
+      body.pdf-export-mode .pdf-brand-word {
+        font-size: 25px !important;
+        letter-spacing: -.06em;
+        font-weight: 950 !important;
+        color: #fff !important;
+      }
+
+      body.pdf-export-mode .pdf-report-header img {
+        max-width: 118px;
+        max-height: 38px;
+        object-fit: contain;
+        filter: brightness(0) invert(1);
+      }
+
+      body.pdf-export-mode .pdf-report-header h1 {
+        margin: 0 !important;
+        font-size: 25px !important;
+        line-height: 1.04 !important;
+        letter-spacing: -.035em;
+        color: #fff !important;
+      }
+
+      body.pdf-export-mode .pdf-report-header p,
+      body.pdf-export-mode .pdf-report-header small,
+      body.pdf-export-mode .pdf-report-header strong {
+        color: rgba(255,255,255,.88) !important;
+        margin: 2px 0 0 !important;
+      }
+
+      body.pdf-export-mode .pdf-period-card {
+        min-width: 250px;
+        padding: 10px 13px;
+        background: rgba(0, 23, 40, .30) !important;
+        border: 1px solid rgba(255,255,255,.22);
+        clip-path: var(--notch-sm);
+        font-size: 11px !important;
+        line-height: 1.45 !important;
+      }
+
+      body.pdf-export-mode .pdf-kpi-grid {
+        display: grid;
+        grid-template-columns: repeat(6, 1fr);
+        gap: 8px;
+        margin-bottom: 10px;
+      }
+
+      body.pdf-export-mode .pdf-kpi {
+        min-height: 66px;
+        padding: 10px 12px;
+        background: #ffffff !important;
+        border: 1px solid #cdeeff !important;
+        clip-path: var(--notch-sm);
+        box-shadow: none !important;
+      }
+
+      body.pdf-export-mode .pdf-kpi small {
+        display: block;
+        font-size: 9.5px !important;
+        line-height: 1.15;
+        color: #3a6f8f !important;
+        font-weight: 950 !important;
+        text-transform: uppercase;
+        letter-spacing: .06em;
+      }
+
+      body.pdf-export-mode .pdf-kpi strong {
+        display: block;
+        margin-top: 5px;
+        font-size: 21px !important;
+        line-height: 1 !important;
+        color: #003b68 !important;
+        letter-spacing: -.04em;
+      }
+
+      body.pdf-export-mode .pdf-kpi .pdf-positive { color: #00b884 !important; }
+      body.pdf-export-mode .pdf-kpi .pdf-negative { color: #f10f0f !important; }
+
+      body.pdf-export-mode .pdf-layout {
+        display: grid;
+        grid-template-columns: 1fr 1fr 1fr;
+        gap: 10px;
+      }
+
+      body.pdf-export-mode .pdf-layout.two {
+        grid-template-columns: 1.1fr .9fr;
+      }
+
+      body.pdf-export-mode .pdf-card {
+        background: #ffffff !important;
+        border: 1px solid #cdeeff !important;
+        clip-path: var(--notch);
+        padding: 12px;
+        min-height: 120px;
+        box-shadow: none !important;
+      }
+
+      body.pdf-export-mode .pdf-card h2,
+      body.pdf-export-mode .pdf-card h3 {
+        margin: 0 0 7px !important;
+        color: #003b68 !important;
+        font-size: 15px !important;
+        line-height: 1.1 !important;
+        letter-spacing: -.025em;
+        text-transform: uppercase;
+      }
+
+      body.pdf-export-mode .pdf-card p,
+      body.pdf-export-mode .pdf-card small {
+        color: #3a6f8f !important;
+      }
+
+      body.pdf-export-mode .pdf-bars {
+        display: flex;
+        align-items: end;
+        gap: 7px;
+        height: 118px;
+        padding: 6px 2px 0;
+      }
+
+      body.pdf-export-mode .pdf-bar-col {
+        flex: 1;
+        min-width: 0;
+        display: grid;
+        grid-template-rows: 18px 1fr 16px;
+        align-items: end;
+        text-align: center;
+        gap: 3px;
+      }
+
+      body.pdf-export-mode .pdf-bar-number {
+        color: #003b68 !important;
+        font-size: 8.5px !important;
+        font-weight: 850 !important;
+        white-space: nowrap;
+      }
+
+      body.pdf-export-mode .pdf-bar-track {
+        position: relative;
+        height: 82px;
+        background: #e7f9ff !important;
+        border: 1px solid #dff6ff !important;
+        display: flex;
+        align-items: end;
+        justify-content: center;
+        overflow: hidden;
+      }
+
+      body.pdf-export-mode .pdf-bar-fill {
+        position: absolute;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        background: #003b68 !important;
+      }
+
+      body.pdf-export-mode .pdf-bar-reject {
+        position: absolute;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        background: #f10f0f !important;
+        min-height: 0;
+      }
+
+      body.pdf-export-mode .pdf-bar-col b {
+        font-size: 8.5px !important;
+        line-height: 1.05;
+        color: #003b68 !important;
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+      }
+
+      body.pdf-export-mode .pdf-legend {
+        display: flex;
+        gap: 10px;
+        align-items: center;
+        margin: 2px 0 0;
+        color: #3a6f8f !important;
+        font-size: 9px !important;
+      }
+
+      body.pdf-export-mode .pdf-legend span { display: inline-flex; align-items: center; gap: 4px; }
+      body.pdf-export-mode .pdf-dot { width: 7px; height: 7px; border-radius: 50%; display: inline-block; background: #003b68 !important; }
+      body.pdf-export-mode .pdf-dot.red { background: #f10f0f !important; }
+      body.pdf-export-mode .pdf-dot.green { background: #00b884 !important; }
+
+      body.pdf-export-mode .pdf-horizontal-bars { display: grid; gap: 7px; margin-top: 8px; }
+      body.pdf-export-mode .pdf-hbar-row { display: grid; grid-template-columns: 112px 1fr 42px; gap: 8px; align-items: center; font-size: 9.5px !important; color: #003b68 !important; }
+      body.pdf-export-mode .pdf-hbar-label { text-align: right; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+      body.pdf-export-mode .pdf-hbar-track { height: 13px; background: #e7f9ff !important; border: 1px solid #dff6ff !important; overflow: hidden; }
+      body.pdf-export-mode .pdf-hbar-fill { height: 100%; background: #f10f0f !important; }
+      body.pdf-export-mode .pdf-hbar-value { font-weight: 950 !important; color: #003b68 !important; }
+
+      body.pdf-export-mode .pdf-exec-grid {
+        display: grid;
+        grid-template-columns: 1fr 1fr 1fr;
+        gap: 8px;
+        margin: 10px 0;
+      }
+
+      body.pdf-export-mode .pdf-exec-item {
+        padding: 10px;
+        border: 1px solid #cdeeff !important;
+        background: #ffffff !important;
+        clip-path: var(--notch-sm);
+        min-height: 62px;
+      }
+
+      body.pdf-export-mode .pdf-exec-item small {
+        display: block;
+        font-size: 9px !important;
+        color: #3a6f8f !important;
+        font-weight: 950 !important;
+        text-transform: uppercase;
+        letter-spacing: .06em;
+      }
+
+      body.pdf-export-mode .pdf-exec-item strong {
+        display: block;
+        margin-top: 5px;
+        color: #003b68 !important;
+        font-size: 14px !important;
+        line-height: 1.22 !important;
+      }
+
+      body.pdf-export-mode .pdf-table {
+        width: 100%;
+        border-collapse: collapse;
+        min-width: 0 !important;
+        font-size: 9px !important;
+      }
+
+      body.pdf-export-mode .pdf-table th,
+      body.pdf-export-mode .pdf-table td {
+        padding: 6px 7px !important;
+        border-bottom: 1px solid #dff6ff !important;
+        color: #003b68 !important;
+        vertical-align: top;
+      }
+
+      body.pdf-export-mode .pdf-table th {
+        background: #e7f9ff !important;
+        color: #3a6f8f !important;
+        text-transform: uppercase;
+        letter-spacing: .06em;
+        font-size: 7.8px !important;
+      }
+
+      body.pdf-export-mode .pdf-badge {
+        display: inline-flex;
+        padding: 4px 7px;
+        background: #e7f9ff !important;
+        color: #003b68 !important;
+        font-weight: 950 !important;
+        clip-path: var(--notch-sm);
+        font-size: 8px !important;
+        white-space: nowrap;
+      }
+
+      body.pdf-export-mode .pdf-badge.critical { background: #002f55 !important; color: #fff !important; }
+      body.pdf-export-mode .pdf-badge.warning { background: #08a9df !important; color: #fff !important; }
+      body.pdf-export-mode .pdf-test-lot {
+        display: inline-flex;
+        align-items: center;
+        gap: 4px;
+        padding: 4px 7px;
+        background: #00d866 !important;
+        color: #001728 !important;
+        font-weight: 950 !important;
+        clip-path: var(--notch-sm);
+        white-space: nowrap;
+      }
+      body.pdf-export-mode .pdf-test-lot::before { content: "★"; }
+
+      body.pdf-export-mode .pdf-footer-note {
+        margin-top: 8px;
+        padding: 8px 10px;
+        border: 1px solid #cdeeff !important;
+        background: #e7f9ff !important;
+        color: #3a6f8f !important;
+        clip-path: var(--notch-sm);
+        font-size: 9px !important;
+        line-height: 1.35 !important;
+      }
+
+      body.pdf-export-mode .pdf-empty {
+        padding: 16px;
+        text-align: center;
+        border: 1px dashed #cdeeff !important;
+        background: #ffffff !important;
+        color: #3a6f8f !important;
+        clip-path: var(--notch-sm);
+        font-size: 10px !important;
+      }
+    }
 
     @media print {
       .topbar,
@@ -1384,6 +1828,8 @@
     </div>
   </div>
 
+  <section id="pdfReport" class="pdf-report" aria-hidden="true"></section>
+
   <div class="toast" id="toast">Salvo.</div>
 
   <script>
@@ -1698,6 +2144,46 @@
       return number(value).toLocaleString("pt-BR");
     }
 
+    function lotDateValue(lot) {
+      const raw = lot.manufactureDate || lot.createdAt || "";
+      const parsed = Date.parse(raw);
+      return Number.isFinite(parsed) ? parsed : 0;
+    }
+
+    function compareLotsBySequence(a, b) {
+      return lotDateValue(a) - lotDateValue(b)
+        || number(a.importOrder) - number(b.importOrder)
+        || String(a.createdAt || "").localeCompare(String(b.createdAt || ""))
+        || String(a.lot || "").localeCompare(String(b.lot || ""), "pt-BR", { numeric: true, sensitivity: "base" });
+    }
+
+    function sortedSeriesLots(lots) {
+      return [...lots].sort(compareLotsBySequence);
+    }
+
+    function testLotForGroup(group) {
+      const sorted = sortedSeriesLots(group.lots || []);
+      return sorted[sorted.length - 1] || null;
+    }
+
+    function isActionableGroup(group) {
+      return group && group.alert && group.alert.level !== "EM ACOMPANHAMENTO";
+    }
+
+    function testLotLabel(group) {
+      const lot = group && group.testLot;
+      if (!lot) return "--";
+      return `${lot.lot || "Lote sem código"}`;
+    }
+
+    function getActionableTestLotMap() {
+      const map = new Map();
+      getGroups().forEach(group => {
+        if (isActionableGroup(group) && group.testLot) map.set(group.testLot.id, group);
+      });
+      return map;
+    }
+
     function showToast(message) {
       const toast = document.getElementById("toast");
       toast.textContent = message;
@@ -1777,10 +2263,12 @@
         group.totalSleepers += number(lot.productionTotal);
         group.totalApproved += number(lot.approvedProductionTotal || lot.productionTotal);
       }
-      return Array.from(map.values()).map(group => ({
-        ...group,
-        alert: alertInfo(group.totalSleepers, group.lots.length)
-      })).sort((a, b) => {
+      return Array.from(map.values()).map(group => {
+        const sortedLots = sortedSeriesLots(group.lots);
+        const prepared = { ...group, lots: sortedLots };
+        const alert = alertInfo(prepared.totalSleepers, prepared.lots.length);
+        return { ...prepared, alert, testLot: testLotForGroup(prepared) };
+      }).sort((a, b) => {
         const order = { "ENSAIAR AGORA": 0, "PRÓXIMO DO ENSAIO": 1, "EM ACOMPANHAMENTO": 2 };
         return order[a.alert.level] - order[b.alert.level] || b.totalSleepers - a.totalSleepers;
       });
@@ -1823,7 +2311,7 @@
     }
 
     function renderHeroRule() {
-      document.getElementById("heroRuleText").innerHTML = `Ensaio ao atingir <strong>${formatNumber(state.config.limitSleepers)}</strong> dormentes ou <strong>${state.config.limitLots}</strong> lotes por <strong>Fábrica + Projeto</strong>. Aviso prévio a partir de ${formatNumber(state.config.warningSleepers)} dormentes ou ${state.config.warningLots} lotes.`;
+      document.getElementById("heroRuleText").innerHTML = `Ensaio ao atingir <strong>${formatNumber(state.config.limitSleepers)}</strong> dormentes ou <strong>${state.config.limitLots}</strong> lotes por <strong>Fábrica + Projeto</strong>. O lote a ser ensaiado é sempre o <strong>último lote da série</strong>, inclusive quando estiver próximo do limite.`;
     }
 
     function renderKpis() {
@@ -1851,7 +2339,17 @@
       }
       container.className = "alert-grid";
       container.innerHTML = groups.map(group => {
-        const lotNames = group.lots.map(lot => escapeHtml(lot.lot)).join(" • ");
+        const testLot = group.testLot;
+        const lotNames = group.lots.map(lot => {
+          const label = escapeHtml(lot.lot);
+          return testLot && lot.id === testLot.id ? `<span class="test-lot-chip" title="Lote a ser ensaiado">${label}</span>` : label;
+        }).join(" • ");
+        const testLotCallout = testLot ? `
+            <div class="test-lot-callout">
+              <small>Lote a ser ensaiado</small>
+              <strong>${escapeHtml(testLot.lot || "Lote sem código")}</strong>
+              <span>Regra aplicada: ao bater ${formatNumber(state.config.limitSleepers)} dormentes, ${state.config.limitLots} lotes ou ficar próximo, separar sempre o último lote da série para o ensaio.</span>
+            </div>` : "";
         return `
           <article class="alert-card ${group.alert.tone}">
             <div class="alert-top">
@@ -1869,6 +2367,7 @@
               <div class="metric"><small>Lotes</small><strong>${group.lots.length}</strong><small>faltam ${group.alert.missingLots}</small></div>
               <div class="metric"><small>Aprovado</small><strong>${formatNumber(group.totalApproved)}</strong><small>no ciclo</small></div>
             </div>
+            ${testLotCallout}
             <div class="lot-list"><strong>Lotes da série:</strong><br>${lotNames}</div>
             <div class="modal-actions" style="justify-content:flex-start">
               <button class="btn btn-primary" data-register-test="${escapeHtml(group.key)}">Registrar ensaio</button>
@@ -1913,9 +2412,11 @@
       }
       return Array.from(map.values()).map(group => {
         const b = baseKey(group.factoryId, group.project);
-        const closedByTest = state.tests.some(test => test.baseKey === b && number(test.cycle) >= number(group.cycle));
-        const isLatest = number(group.cycle) === latest.get(b);
-        return { ...group, isLatest, closedByTest, alert: alertInfo(group.totalSleepers, group.lots.length) };
+        const sortedLots = sortedSeriesLots(group.lots);
+        const prepared = { ...group, lots: sortedLots };
+        const closedByTest = state.tests.some(test => test.baseKey === b && number(test.cycle) >= number(prepared.cycle));
+        const isLatest = number(prepared.cycle) === latest.get(b);
+        return { ...prepared, isLatest, closedByTest, alert: alertInfo(prepared.totalSleepers, prepared.lots.length), testLot: testLotForGroup(prepared) };
       }).sort((a, b) => factoryLabel(a.factoryId).localeCompare(factoryLabel(b.factoryId)) || a.project.localeCompare(b.project) || number(b.cycle) - number(a.cycle));
     }
 
@@ -2011,10 +2512,10 @@
       series.innerHTML = `
         <div class="series-table-wrap">
           <table class="series-table">
-            <thead><tr><th>Fábrica</th><th>Projeto</th><th>Ciclo</th><th>Lotes</th><th>Dormentes</th><th>Gatilho</th><th>Situação</th></tr></thead>
+            <thead><tr><th>Fábrica</th><th>Projeto</th><th>Ciclo</th><th>Lotes</th><th>Dormentes</th><th>Lote a ensaiar</th><th>Gatilho</th><th>Situação</th></tr></thead>
             <tbody>${seriesRows.map(row => {
-              const lots = row.lots.map(lot => lot.lot).join(" • ");
-              const trigger = row.totalSleepers >= number(state.config.limitSleepers) ? "2.000 dormentes" : row.lots.length >= number(state.config.limitLots) ? "10 lotes" : "em aberto";
+              const lots = row.lots.map(lot => row.testLot && lot.id === row.testLot.id ? `★ ${lot.lot}` : lot.lot).join(" • ");
+              const trigger = row.totalSleepers >= number(state.config.limitSleepers) ? "2.000 dormentes" : row.lots.length >= number(state.config.limitLots) ? "10 lotes" : row.alert.level === "PRÓXIMO DO ENSAIO" ? "próximo" : "em aberto";
               const situation = row.closedByTest ? "Fechada por ensaio" : row.isLatest ? row.alert.level : "Histórico calculado";
               const tone = situation === "ENSAIAR AGORA" ? "danger" : situation === "PRÓXIMO DO ENSAIO" ? "warning" : "gray";
               return `<tr>
@@ -2023,6 +2524,7 @@
                 <td>${escapeHtml(row.cycle)}</td>
                 <td>${row.lots.length}</td>
                 <td>${formatNumber(row.totalSleepers)}</td>
+                <td><span class="test-lot-table-badge">${escapeHtml(testLotLabel(row))}</span></td>
                 <td>${trigger}</td>
                 <td><span class="badge ${tone}">${situation}</span></td>
               </tr>`;
@@ -2221,16 +2723,24 @@
       const tbody = document.getElementById("lotsTableBody");
       const empty = document.getElementById("lotsEmpty");
       const rows = filteredLots();
+      const testLotMap = getActionableTestLotMap();
       const count = document.getElementById("lotFilterCount");
       empty.style.display = rows.length ? "none" : "block";
       if (count) {
         const total = state.lots.length;
         count.textContent = `${rows.length} de ${total} lote${total === 1 ? "" : "s"} exibido${rows.length === 1 ? "" : "s"}.`;
       }
-      tbody.innerHTML = rows.map(lot => `
-        <tr>
+      tbody.innerHTML = rows.map(lot => {
+        const candidateGroup = testLotMap.get(lot.id);
+        const isTestLot = Boolean(candidateGroup);
+        const testBadge = isTestLot
+          ? `<div class="test-lot-table-badge">Lote a ser ensaiado • ${escapeHtml(candidateGroup.alert.level)}</div>`
+          : "";
+        return `
+        <tr class="${isTestLot ? "test-lot-row" : ""}">
           <td>
             <strong>${escapeHtml(lot.lot)}</strong>
+            ${testBadge}
             <div class="tiny muted">${escapeHtml(lot.track || "Sem pista")} • Pedido ${escapeHtml(lot.orderNumber || "--")} • Ciclo ${escapeHtml(lot.cycle || "--")}</div>
           </td>
           <td>${escapeHtml(factoryLabel(lot.factoryId))}</td>
@@ -2241,7 +2751,8 @@
           <td><span class="badge ${statusTone(lot.status)}">${escapeHtml(lot.status)}</span>${lotIssues(lot).length ? `<div class="issue-pill">${lotIssues(lot).length} pendência(s)</div>` : ""}${lot.reason ? `<div class="tiny muted" style="margin-top:8px">${escapeHtml(lot.reason)}</div>` : ""}</td>
           <td><div class="actions"><button class="btn btn-outline btn-small" data-edit-lot="${escapeHtml(lot.id)}">Editar</button><button class="btn btn-danger btn-small" data-delete-lot="${escapeHtml(lot.id)}">Excluir</button></div></td>
         </tr>
-      `).join("");
+      `;
+      }).join("");
 
       tbody.querySelectorAll("[data-edit-lot]").forEach(btn => btn.addEventListener("click", () => editLot(btn.dataset.editLot)));
       tbody.querySelectorAll("[data-delete-lot]").forEach(btn => btn.addEventListener("click", () => deleteLot(btn.dataset.deleteLot)));
@@ -2267,9 +2778,11 @@
       document.getElementById("testSleepersFailed").value = "";
       document.getElementById("testReason").value = "";
       document.getElementById("testModalSubtitle").textContent = `${factoryLabel(group.factoryId)} • ${group.project} • ciclo ${group.cycle}`;
+      const testLot = group.testLot;
       document.getElementById("testModalSummary").innerHTML = `
         <strong>Total da série:</strong> ${group.lots.length} lotes • ${formatNumber(group.totalSleepers)} dormentes.<br>
-        <strong>Lotes:</strong> ${group.lots.map(lot => escapeHtml(lot.lot)).join(" • ")}
+        <strong>Lote a ser ensaiado:</strong> ${testLot ? `<span class="test-lot-chip">${escapeHtml(testLot.lot || "Lote sem código")}</span>` : "--"}<br>
+        <strong>Lotes:</strong> ${group.lots.map(lot => testLot && lot.id === testLot.id ? `<span class="test-lot-chip">${escapeHtml(lot.lot)}</span>` : escapeHtml(lot.lot)).join(" • ")}
       `;
       document.getElementById("testModal").classList.add("show");
     }
@@ -2285,6 +2798,7 @@
       if (!group) return;
       const result = document.getElementById("testResult").value;
       const status = RESULT_STATUS[result] || "Série em alerta por reprovação";
+      const testLot = group.testLot;
       const test = {
         id: id("ensaio"),
         createdAt: new Date().toISOString(),
@@ -2302,6 +2816,8 @@
         reason: document.getElementById("testReason").value,
         totalSleepers: group.totalSleepers,
         totalLots: group.lots.length,
+        testLotId: testLot ? testLot.id : "",
+        testLot: testLot ? testLot.lot : "",
         lots: group.lots.map(lot => ({ id: lot.id, lot: lot.lot }))
       };
 
@@ -2343,16 +2859,17 @@
             </div>
             <span class="badge ${test.result === "Aprovado" ? "ok" : "danger"}">${escapeHtml(test.result)}</span>
           </div>
-          <div class="metric-row" style="margin-top:14px; grid-template-columns:repeat(2,minmax(0,1fr))">
+          <div class="metric-row" style="margin-top:14px; grid-template-columns:repeat(3,minmax(0,1fr))">
             <div class="metric"><small>Lotes</small><strong>${test.totalLots}</strong><small>série fechada</small></div>
             <div class="metric"><small>Dormentes</small><strong>${formatNumber(test.totalSleepers)}</strong><small>série fechada</small></div>
+            <div class="metric"><small>Lote ensaiado</small><strong>${escapeHtml(test.testLot || "--")}</strong><small>último lote da série</small></div>
           </div>
           <div class="lot-list">
             <strong>Série:</strong> ${escapeHtml(test.releaseTestSeries || "--")}<br>
             <strong>iAuditor:</strong> ${escapeHtml(test.iauditorTest || "--")}<br>
             <strong>Ensaiados:</strong> ${escapeHtml(test.testedSleepers || "--")} • <strong>Reprovados:</strong> ${escapeHtml(test.failedSleepers || "--")}<br>
             ${test.reason ? `<strong>Motivo:</strong> ${escapeHtml(test.reason)}<br>` : ""}
-            <strong>Lotes:</strong> ${test.lots.map(item => escapeHtml(item.lot)).join(" • ")}
+            <strong>Lotes:</strong> ${test.lots.map(item => test.testLotId && item.id === test.testLotId ? `<span class="test-lot-chip">${escapeHtml(item.lot)}</span>` : escapeHtml(item.lot)).join(" • ")}
           </div>
         </article>
       `).join("");
@@ -2494,9 +3011,381 @@
       download(`controle-dormentes-${today()}.csv`, content, "text/csv;charset=utf-8");
     }
 
+    function formatPercent(value, digits = 2) {
+      return `${Number(value || 0).toLocaleString("pt-BR", { minimumFractionDigits: digits, maximumFractionDigits: digits })}%`;
+    }
+
+    function approvedForLot(lot) {
+      const production = number(lot.productionTotal);
+      const explicit = number(lot.approvedProductionTotal);
+      const hasExplicit = String(lot.approvedProductionTotal ?? "").trim() !== "";
+      const failed = number(lot.failedSleepers);
+      if (hasExplicit) return Math.max(0, explicit);
+      if (failed > 0) return Math.max(0, production - failed);
+      return production;
+    }
+
+    function rejectedForLot(lot) {
+      const production = number(lot.productionTotal);
+      const failed = number(lot.failedSleepers);
+      const byApproved = Math.max(0, production - approvedForLot(lot));
+      return Math.max(failed, byApproved);
+    }
+
+    function reportLotsSource() {
+      const hasFilters = Boolean(
+        state.filters.search.trim() ||
+        state.filters.factory !== "todas" ||
+        state.filters.project !== "todos" ||
+        state.filters.status !== "todos"
+      );
+      const lots = hasFilters ? filteredLots() : state.lots;
+      return lots.filter(lot => number(lot.productionTotal) > 0).sort(compareLotsBySequence);
+    }
+
+    function parseLotDate(lot) {
+      const raw = lot.manufactureDate || lot.createdAt || lot.updatedAt || "";
+      const parsed = Date.parse(raw);
+      return Number.isFinite(parsed) ? new Date(parsed) : null;
+    }
+
+    function formatDateBr(value) {
+      if (!value) return "--";
+      const date = value instanceof Date ? value : new Date(value);
+      if (!Number.isFinite(date.getTime())) return "--";
+      return date.toLocaleDateString("pt-BR");
+    }
+
+    function monthLabelFromKey(key) {
+      const [year, month] = String(key).split("-").map(Number);
+      if (!year || !month) return key;
+      const date = new Date(Date.UTC(year, month - 1, 1));
+      return date.toLocaleDateString("pt-BR", { month: "short" }).replace(".", "");
+    }
+
+    function isoWeek(date) {
+      const d = new Date(Date.UTC(date.getFullYear(), date.getMonth(), date.getDate()));
+      const day = d.getUTCDay() || 7;
+      d.setUTCDate(d.getUTCDate() + 4 - day);
+      const yearStart = new Date(Date.UTC(d.getUTCFullYear(), 0, 1));
+      const week = Math.ceil((((d - yearStart) / 86400000) + 1) / 7);
+      return { year: d.getUTCFullYear(), week };
+    }
+
+    function reportPeriodKey(lot, mode) {
+      const date = parseLotDate(lot);
+      if (!date) return null;
+      if (mode === "month") {
+        const y = date.getFullYear();
+        const m = String(date.getMonth() + 1).padStart(2, "0");
+        return { key: `${y}-${m}`, label: monthLabelFromKey(`${y}-${m}`) };
+      }
+      const weekInfo = isoWeek(date);
+      return { key: `${weekInfo.year}-W${String(weekInfo.week).padStart(2, "0")}`, label: String(weekInfo.week) };
+    }
+
+    function reportSeriesByPeriod(lots, mode, limit = 16) {
+      const map = new Map();
+      for (const lot of lots) {
+        const period = reportPeriodKey(lot, mode);
+        if (!period) continue;
+        if (!map.has(period.key)) map.set(period.key, { key: period.key, label: period.label, total: 0, approved: 0, rejected: 0 });
+        const row = map.get(period.key);
+        row.total += number(lot.productionTotal);
+        row.approved += approvedForLot(lot);
+        row.rejected += rejectedForLot(lot);
+      }
+      return Array.from(map.values())
+        .sort((a, b) => a.key.localeCompare(b.key))
+        .slice(-limit)
+        .map(row => ({ ...row, approval: row.total ? row.approved / row.total * 100 : 0 }));
+    }
+
+    function reportStats(lots) {
+      const total = lots.reduce((sum, lot) => sum + number(lot.productionTotal), 0);
+      const approved = lots.reduce((sum, lot) => sum + approvedForLot(lot), 0);
+      const rejected = lots.reduce((sum, lot) => sum + rejectedForLot(lot), 0);
+      const lotBaseKeys = new Set(lots.map(lot => baseKey(lot.factoryId, lot.project)));
+      const relatedTests = state.tests.filter(test => lotBaseKeys.has(test.baseKey || baseKey(test.factoryId, test.project)));
+      const testRefs = new Set(relatedTests.map(test => test.id));
+      lots.forEach(lot => {
+        const ref = String(lot.iauditorTest || lot.releaseTestSeries || "").trim();
+        if (ref) testRefs.add(ref);
+        else if (number(lot.testedSleepers) > 0) testRefs.add(`lote-${lot.id}`);
+      });
+      return {
+        total,
+        approved,
+        rejected,
+        approval: total ? approved / total * 100 : 0,
+        rejection: total ? rejected / total * 100 : 0,
+        tests: testRefs.size,
+        relatedTests
+      };
+    }
+
+    function reportPeriodLabel(lots) {
+      const dates = lots.map(parseLotDate).filter(Boolean).sort((a, b) => a - b);
+      if (!dates.length) return "Período não informado";
+      return `${formatDateBr(dates[0])} a ${formatDateBr(dates[dates.length - 1])}`;
+    }
+
+    function reportFilterLabel(lots) {
+      const parts = [];
+      if (state.filters.factory !== "todas") parts.push(factoryLabel(state.filters.factory));
+      if (state.filters.project !== "todos") parts.push(state.filters.project);
+      if (state.filters.status !== "todos") parts.push(state.filters.status);
+      if (state.filters.search.trim()) parts.push(`Busca: ${state.filters.search.trim()}`);
+      if (parts.length) return parts.join(" • ");
+      const factories = uniqueSorted(lots.map(lot => factoryLabel(lot.factoryId))).slice(0, 3);
+      return factories.length ? `Todos os dados cadastrados • ${factories.join(" • ")}${uniqueSorted(lots.map(lot => lot.factoryId)).length > 3 ? " • ..." : ""}` : "Todos os dados cadastrados";
+    }
+
+    function reportVerticalBars(rows, options = {}) {
+      if (!rows.length) return `<div class="pdf-empty">Sem dados para este gráfico.</div>`;
+      const max = options.percent ? 100 : Math.max(...rows.map(row => row.value || row.total || 0), 1);
+      return `<div class="pdf-bars">${rows.map(row => {
+        const value = options.percent ? row.value : (row.value ?? row.total ?? 0);
+        const height = Math.max(2, Math.min(100, value / max * 100));
+        const rejected = Math.max(0, row.rejected || 0);
+        const rejectedHeight = options.percent ? 0 : Math.min(height, rejected / max * 100);
+        const valueLabel = options.percent ? formatPercent(value) : formatNumber(value);
+        return `
+          <div class="pdf-bar-col">
+            <span class="pdf-bar-number">${escapeHtml(valueLabel)}</span>
+            <div class="pdf-bar-track">
+              <span class="pdf-bar-fill" style="height:${height.toFixed(2)}%"></span>
+              ${rejected ? `<span class="pdf-bar-reject" style="height:${Math.max(1, rejectedHeight).toFixed(2)}%"></span>` : ""}
+            </div>
+            <b>${escapeHtml(row.label)}</b>
+          </div>`;
+      }).join("")}</div>`;
+    }
+
+    function classifyRejection(lot) {
+      const text = [lot.reason, lot.importWarning, lot.status, lot.shoulderType, lot.uspLot].join(" ").toLowerCase();
+      if (text.includes("vazio")) return "Vazios";
+      if (text.includes("ombreir")) return "Ombreiras";
+      if (text.includes("trinc")) return "Trincas";
+      if (text.includes("quebr")) return "Quebras";
+      if (text.includes("usp")) return "USP";
+      if (text.includes("falha") || text.includes("produção") || text.includes("producao")) return "Falha de produção";
+      return "Outros";
+    }
+
+    function reportRejectionCategories(lots) {
+      const base = ["Vazios", "Ombreiras", "Trincas", "Quebras", "Falha de produção", "Outros", "USP"];
+      const map = new Map(base.map(label => [label, 0]));
+      lots.forEach(lot => {
+        const rejected = rejectedForLot(lot);
+        if (!rejected) return;
+        const key = classifyRejection(lot);
+        map.set(key, (map.get(key) || 0) + rejected);
+      });
+      return Array.from(map.entries()).map(([label, value]) => ({ label, value })).sort((a, b) => b.value - a.value || a.label.localeCompare(b.label));
+    }
+
+    function reportHorizontalBars(rows) {
+      if (!rows.length || rows.every(row => !row.value)) return `<div class="pdf-empty">Nenhuma reprova detalhada no período.</div>`;
+      const max = Math.max(...rows.map(row => row.value), 1);
+      return `<div class="pdf-horizontal-bars">${rows.map(row => `
+        <div class="pdf-hbar-row">
+          <span class="pdf-hbar-label">${escapeHtml(row.label)}</span>
+          <span class="pdf-hbar-track"><span class="pdf-hbar-fill" style="width:${Math.max(1, row.value / max * 100).toFixed(2)}%"></span></span>
+          <span class="pdf-hbar-value">${formatNumber(row.value)}</span>
+        </div>`).join("")}</div>`;
+    }
+
+    function pdfBadgeClass(level) {
+      if (level === "ENSAIAR AGORA") return "critical";
+      if (level === "PRÓXIMO DO ENSAIO") return "warning";
+      return "";
+    }
+
+    function reportGroupsForLots(lots) {
+      const lotIds = new Set(lots.map(lot => lot.id));
+      const allowedBaseKeys = new Set(lots.map(lot => baseKey(lot.factoryId, lot.project)));
+      return getGroups()
+        .filter(group => allowedBaseKeys.has(baseKey(group.factoryId, group.project)) || group.lots.some(lot => lotIds.has(lot.id)))
+        .sort((a, b) => {
+          const order = { "ENSAIAR AGORA": 0, "PRÓXIMO DO ENSAIO": 1, "EM ACOMPANHAMENTO": 2 };
+          return order[a.alert.level] - order[b.alert.level] || b.totalSleepers - a.totalSleepers;
+        });
+    }
+
+    function renderReportGroupRows(groups) {
+      if (!groups.length) return `<tr><td colspan="7" class="pdf-empty">Nenhuma série ativa para o recorte do relatório.</td></tr>`;
+      return groups.slice(0, 9).map(group => `
+        <tr>
+          <td>${escapeHtml(factoryLabel(group.factoryId))}</td>
+          <td><strong>${escapeHtml(group.project)}</strong><br><small>Ciclo ${escapeHtml(group.cycle)}</small></td>
+          <td>${formatNumber(group.totalSleepers)}</td>
+          <td>${group.lots.length}</td>
+          <td><span class="pdf-test-lot">${escapeHtml(testLotLabel(group))}</span></td>
+          <td><span class="pdf-badge ${pdfBadgeClass(group.alert.level)}">${escapeHtml(group.alert.level)}</span></td>
+          <td>${escapeHtml(group.alert.message)}</td>
+        </tr>`).join("");
+    }
+
+    function renderReportTestRows(tests) {
+      if (!tests.length) return `<tr><td colspan="6" class="pdf-empty">Nenhum ensaio registrado para o recorte do relatório.</td></tr>`;
+      return tests.slice(0, 8).map(test => `
+        <tr>
+          <td>${escapeHtml(test.date || "--")}</td>
+          <td>${escapeHtml(factoryLabel(test.factoryId))}</td>
+          <td>${escapeHtml(test.project || "--")}<br><small>Ciclo ${escapeHtml(test.cycle || "--")}</small></td>
+          <td>${escapeHtml(test.result || "--")}</td>
+          <td><span class="pdf-test-lot">${escapeHtml(test.testLot || "--")}</span></td>
+          <td>${escapeHtml(test.iauditorTest || "--")}</td>
+        </tr>`).join("");
+    }
+
+    function buildPdfReport() {
+      const lots = reportLotsSource();
+      const stats = reportStats(lots);
+      const monthly = reportSeriesByPeriod(lots, "month", 8);
+      const weekly = reportSeriesByPeriod(lots, "week", 16);
+      const groups = reportGroupsForLots(lots);
+      const categories = reportRejectionCategories(lots);
+      const critical = groups.filter(group => group.alert.level === "ENSAIAR AGORA").length;
+      const near = groups.filter(group => group.alert.level === "PRÓXIMO DO ENSAIO").length;
+      const lastUpdate = new Date().toLocaleString("pt-BR");
+      const monthlyApprovalRows = monthly.map(row => ({ label: row.label, value: row.approval }));
+      const weeklyApprovalRows = weekly.map(row => ({ label: row.label, value: row.approval }));
+      const monthlyProductionRows = monthly.map(row => ({ label: row.label, value: row.total, rejected: row.rejected }));
+      const weeklyProductionRows = weekly.map(row => ({ label: row.label, value: row.total, rejected: row.rejected }));
+      const factoryNames = uniqueSorted(lots.map(lot => factoryLabel(lot.factoryId))).join(" • ") || "--";
+      const projectNames = uniqueSorted(lots.map(lot => lot.project)).slice(0, 4).join(" • ") || "--";
+
+      return `
+        <article class="pdf-page">
+          <div class="pdf-content">
+            <header class="pdf-report-header">
+              <div>
+                <img src="./rumologo.png" alt="Rumo" onerror="this.style.display='none';this.nextElementSibling.style.display='block'" />
+                <div class="pdf-brand-word" style="display:none">rumo</div>
+              </div>
+              <div>
+                <h1>Dormente de concreto</h1>
+                <p>Relatório executivo - engenharia de qualidade de materiais</p>
+                <small>${escapeHtml(factoryNames)} • ${escapeHtml(projectNames)}</small>
+              </div>
+              <div class="pdf-period-card">
+                <strong>Período:</strong> ${escapeHtml(reportPeriodLabel(lots))}<br>
+                <strong>Recorte:</strong> ${escapeHtml(reportFilterLabel(lots))}<br>
+                <strong>Gerado em:</strong> ${escapeHtml(lastUpdate)}
+              </div>
+            </header>
+
+            <section class="pdf-kpi-grid">
+              <div class="pdf-kpi"><small>Total fabricado</small><strong>${formatNumber(stats.total)}</strong></div>
+              <div class="pdf-kpi"><small>Aprovados</small><strong class="pdf-positive">${formatNumber(stats.approved)}</strong></div>
+              <div class="pdf-kpi"><small>Reprovados</small><strong class="pdf-negative">${formatNumber(stats.rejected)}</strong></div>
+              <div class="pdf-kpi"><small>Percentual de aprovação</small><strong class="pdf-positive">${formatPercent(stats.approval)}</strong></div>
+              <div class="pdf-kpi"><small>Percentual de reprovação</small><strong class="pdf-negative">${formatPercent(stats.rejection)}</strong></div>
+              <div class="pdf-kpi"><small>Ensaios realizados</small><strong>${formatNumber(stats.tests)}</strong></div>
+            </section>
+
+            <section class="pdf-exec-grid">
+              <div class="pdf-exec-item"><small>Séries para ensaiar agora</small><strong>${critical ? `${critical} série(s) no limite` : "Nenhuma série no limite"}</strong></div>
+              <div class="pdf-exec-item"><small>Séries próximas</small><strong>${near ? `${near} série(s) próxima(s) do ensaio` : "Nenhuma série próxima"}</strong></div>
+              <div class="pdf-exec-item"><small>Regra de amostragem</small><strong>Ensaiar sempre o último lote da série ao bater ${formatNumber(state.config.limitSleepers)} dormentes, ${state.config.limitLots} lotes ou ficar próximo.</strong></div>
+            </section>
+
+            <section class="pdf-layout">
+              <div class="pdf-card">
+                <h2>Percentual de aprovação mensal</h2>
+                ${reportVerticalBars(monthlyApprovalRows, { percent: true })}
+              </div>
+              <div class="pdf-card">
+                <h2>Produção por semana</h2>
+                <div class="pdf-legend"><span><i class="pdf-dot"></i>Fabricados</span><span><i class="pdf-dot red"></i>Reprovados</span></div>
+                ${reportVerticalBars(weeklyProductionRows)}
+              </div>
+              <div class="pdf-card">
+                <h2>Produção por mês</h2>
+                <div class="pdf-legend"><span><i class="pdf-dot"></i>Fabricados</span><span><i class="pdf-dot red"></i>Reprovados</span></div>
+                ${reportVerticalBars(monthlyProductionRows)}
+              </div>
+            </section>
+
+            <section class="pdf-layout two" style="margin-top:10px">
+              <div class="pdf-card">
+                <h2>Percentual de aprovação semanal</h2>
+                ${reportVerticalBars(weeklyApprovalRows, { percent: true })}
+              </div>
+              <div class="pdf-card">
+                <h2>Reprovas no detalhado</h2>
+                ${reportHorizontalBars(categories)}
+              </div>
+            </section>
+          </div>
+        </article>
+
+        <article class="pdf-page">
+          <div class="pdf-content">
+            <header class="pdf-report-header">
+              <div class="pdf-brand-word">rumo</div>
+              <div>
+                <h1>Séries, ensaios e lote evidenciado</h1>
+                <p>Resumo operacional para acompanhamento com coordenação.</p>
+              </div>
+              <div class="pdf-period-card">
+                <strong>Período:</strong> ${escapeHtml(reportPeriodLabel(lots))}<br>
+                <strong>Gerado em:</strong> ${escapeHtml(lastUpdate)}
+              </div>
+            </header>
+
+            <section class="pdf-card">
+              <h2>Séries ativas e lote a ser ensaiado</h2>
+              <table class="pdf-table">
+                <thead>
+                  <tr>
+                    <th>Fábrica</th><th>Projeto</th><th>Dormentes</th><th>Lotes</th><th>Lote evidenciado</th><th>Status</th><th>Leitura</th>
+                  </tr>
+                </thead>
+                <tbody>${renderReportGroupRows(groups)}</tbody>
+              </table>
+              <div class="pdf-footer-note">O lote evidenciado é sempre o último lote da série ativa. Esta regra foi aplicada também para séries próximas do limite, evitando dúvida na preparação da amostragem.</div>
+            </section>
+
+            <section class="pdf-layout two" style="margin-top:10px">
+              <div class="pdf-card">
+                <h2>Ensaios registrados</h2>
+                <table class="pdf-table">
+                  <thead><tr><th>Data</th><th>Fábrica</th><th>Projeto</th><th>Resultado</th><th>Lote ensaiado</th><th>iAuditor</th></tr></thead>
+                  <tbody>${renderReportTestRows(stats.relatedTests)}</tbody>
+                </table>
+              </div>
+              <div class="pdf-card">
+                <h2>Leitura executiva</h2>
+                <div class="pdf-exec-item"><small>Produção analisada</small><strong>${formatNumber(stats.total)} dormentes em ${formatNumber(lots.length)} lote(s).</strong></div>
+                <div class="pdf-exec-item" style="margin-top:8px"><small>Qualidade</small><strong>${formatPercent(stats.approval)} de aprovação e ${formatNumber(stats.rejected)} dormentes reprovados no recorte.</strong></div>
+                <div class="pdf-exec-item" style="margin-top:8px"><small>Próxima ação</small><strong>${critical ? "Registrar ensaio das séries no limite e usar o lote evidenciado." : near ? "Planejar amostragem para as séries próximas do limite." : "Manter acompanhamento das séries ativas."}</strong></div>
+              </div>
+            </section>
+          </div>
+        </article>`;
+    }
+
+    function cleanupPdfReport() {
+      document.body.classList.remove("pdf-export-mode");
+      const report = document.getElementById("pdfReport");
+      if (report) report.innerHTML = "";
+      if (window.__dmOriginalTitle) {
+        document.title = window.__dmOriginalTitle;
+        window.__dmOriginalTitle = "";
+      }
+    }
+
     function exportPdf() {
-      showToast("Abrindo exportação. Na janela de impressão, escolha Salvar como PDF.");
-      setTimeout(() => window.print(), 180);
+      const report = document.getElementById("pdfReport");
+      report.innerHTML = buildPdfReport();
+      window.__dmOriginalTitle = document.title;
+      document.title = `relatorio-dormentes-${today()}`;
+      document.body.classList.add("pdf-export-mode");
+      showToast("Relatório executivo preparado. Na janela de impressão, escolha Salvar como PDF.");
+      setTimeout(() => window.print(), 220);
     }
 
     function exportBackup() {
@@ -2869,6 +3758,8 @@
       document.getElementById("factoryForm").addEventListener("submit", addFactory);
       document.getElementById("projectForm").addEventListener("submit", addProject);
     }
+
+    window.addEventListener("afterprint", cleanupPdfReport);
 
     initTheme();
     bindEvents();
