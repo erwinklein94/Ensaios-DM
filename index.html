@@ -773,6 +773,29 @@
       font-weight: 850;
     }
 
+    .insight-filters {
+      grid-template-columns: minmax(150px, 1fr) minmax(150px, 1fr) auto;
+      margin-top: 14px;
+      margin-bottom: 12px;
+    }
+
+    .smart-period-note {
+      margin: 8px 0 12px;
+      color: var(--muted);
+      font-size: 12px;
+      line-height: 1.45;
+      font-weight: 850;
+    }
+
+    .smart-total-row td {
+      background: #e7f9ff;
+      font-weight: 950;
+    }
+
+    body.dark-theme .smart-total-row td {
+      background: #0a3a5c;
+    }
+
     .table-wrap {
       overflow-x: auto;
       clip-path: var(--notch);
@@ -1650,6 +1673,18 @@
         <div class="insight-card">
           <h3>Leitura inteligente da planilha</h3>
           <p>Resumo automático dos dados importados: produção por projeto, séries calculadas e pontos que merecem conferência.</p>
+          <div class="filters insight-filters">
+            <div class="filter-field">
+              <label for="smartStartDate">Início do período</label>
+              <input id="smartStartDate" type="date" />
+            </div>
+            <div class="filter-field">
+              <label for="smartEndDate">Fim do período</label>
+              <input id="smartEndDate" type="date" />
+            </div>
+            <button class="btn btn-outline" id="resetSmartPeriodBtn" type="button">Semana mais atual</button>
+          </div>
+          <div id="smartPeriodNote" class="smart-period-note"></div>
           <div id="smartInsights"></div>
         </div>
         <div class="insight-card">
@@ -1899,7 +1934,8 @@
       factories: "dm_factories_v2",
       projects: "dm_projects_v2",
       config: "dm_config_v2",
-      reportFilters: "dm_report_filters_v1"
+      reportFilters: "dm_report_filters_v1",
+      smartFilters: "dm_smart_filters_v1"
     };
 
     const DEFAULT_CONFIG = {
@@ -1913,6 +1949,11 @@
       factory: "todas",
       project: "todos",
       date: ""
+    };
+
+    const DEFAULT_SMART_FILTERS = {
+      startDate: "",
+      endDate: ""
     };
 
     const DEFAULT_FACTORIES = [
@@ -1937,6 +1978,7 @@
       "Bloqueado",
       "Liberado manualmente",
       "Liberado para transporte",
+      "Em análise",
       "Sem status",
       "Planejado sem produção"
     ];
@@ -2092,6 +2134,7 @@
       projects: load(STORAGE_KEYS.projects, DEFAULT_PROJECTS),
       config: load(STORAGE_KEYS.config, DEFAULT_CONFIG),
       reportFilters: load(STORAGE_KEYS.reportFilters, DEFAULT_REPORT_FILTERS),
+      smartFilters: load(STORAGE_KEYS.smartFilters, DEFAULT_SMART_FILTERS),
       activeTab: "inicio",
       editingId: null,
       form: { ...EMPTY_LOT },
@@ -2153,6 +2196,7 @@
       localStorage.setItem(STORAGE_KEYS.projects, JSON.stringify(state.projects));
       localStorage.setItem(STORAGE_KEYS.config, JSON.stringify(state.config));
       localStorage.setItem(STORAGE_KEYS.reportFilters, JSON.stringify(state.reportFilters));
+      localStorage.setItem(STORAGE_KEYS.smartFilters, JSON.stringify(state.smartFilters));
     }
 
     function number(value) {
@@ -2236,10 +2280,11 @@
     }
 
     function isActionableGroup(group) {
-      return group && group.alert && group.alert.level !== "EM ACOMPANHAMENTO";
+      return group && group.alert && group.alert.level === "ENSAIAR AGORA";
     }
 
     function testLotLabel(group) {
+      if (!isActionableGroup(group)) return "Aguardando limite";
       const lot = group && group.testLot;
       if (!lot) return "--";
       return `${lot.lot || "Lote sem código"}`;
@@ -2382,7 +2427,7 @@
     }
 
     function renderHeroRule() {
-      document.getElementById("heroRuleText").innerHTML = `Ensaio ao atingir <strong>${formatNumber(state.config.limitSleepers)}</strong> dormentes ou <strong>${state.config.limitLots}</strong> lotes por <strong>Fábrica + Projeto</strong>. O lote a ser ensaiado é sempre o <strong>último lote da série</strong>, inclusive quando estiver próximo do limite.`;
+      document.getElementById("heroRuleText").innerHTML = `Ensaio ao atingir <strong>${formatNumber(state.config.limitSleepers)}</strong> dormentes ou <strong>${state.config.limitLots}</strong> lotes por <strong>Fábrica + Projeto</strong>. O lote só fica evidenciado como <strong>a ser ensaiado</strong> quando a série bater o limite mínimo.`;
     }
 
     function renderKpis() {
@@ -2410,16 +2455,17 @@
       }
       container.className = "alert-grid";
       container.innerHTML = groups.map(group => {
-        const testLot = group.testLot;
+        const canShowTestLot = isActionableGroup(group);
+        const testLot = canShowTestLot ? group.testLot : null;
         const lotNames = group.lots.map(lot => {
           const label = escapeHtml(lot.lot);
-          return testLot && lot.id === testLot.id ? `<span class="test-lot-chip" title="Lote a ser ensaiado">${label}</span>` : label;
+          return testLot && lot.id === testLot.id ? `<span class="test-lot-chip" title="Lote confirmado para ensaio">${label}</span>` : label;
         }).join(" • ");
         const testLotCallout = testLot ? `
             <div class="test-lot-callout">
-              <small>Lote a ser ensaiado</small>
+              <small>Lote confirmado para ensaio</small>
               <strong>${escapeHtml(testLot.lot || "Lote sem código")}</strong>
-              <span>Regra aplicada: ao bater ${formatNumber(state.config.limitSleepers)} dormentes, ${state.config.limitLots} lotes ou ficar próximo, separar sempre o último lote da série para o ensaio.</span>
+              <span>Regra aplicada: ao bater ${formatNumber(state.config.limitSleepers)} dormentes ou ${state.config.limitLots} lotes, separar o último lote da série para o ensaio.</span>
             </div>` : "";
         return `
           <article class="alert-card ${group.alert.tone}">
@@ -2503,63 +2549,145 @@
       return issues;
     }
 
-    function dataQuality() {
-      const lotsWithProduction = state.lots.filter(lot => number(lot.productionTotal) > 0);
-      const withoutProduction = state.lots.filter(lot => number(lot.productionTotal) <= 0).length;
-      const withoutStatus = state.lots.filter(lot => !lot.status || lot.status === "Sem status").length;
-      const blocked = state.lots.filter(lot => String(lot.status || "").toLowerCase().includes("bloque")).length;
-      const slumpIssues = state.lots.reduce((sum, lot) => sum + lotIssues(lot).filter(item => item.includes("slump")).length, 0);
-      const refFixed = state.lots.filter(lot => String(lot.importWarning || "").includes("#REF!")).length;
+    function dataQuality(lots = state.lots) {
+      const lotsWithProduction = lots.filter(lot => number(lot.productionTotal) > 0);
+      const withoutProduction = lots.filter(lot => number(lot.productionTotal) <= 0).length;
+      const withoutStatus = lots.filter(lot => !lot.status || lot.status === "Sem status").length;
+      const blocked = lots.filter(lot => String(lot.status || "").toLowerCase().includes("bloque")).length;
+      const slumpIssues = lots.reduce((sum, lot) => sum + lotIssues(lot).filter(item => item.includes("slump")).length, 0);
+      const refFixed = lots.filter(lot => String(lot.importWarning || "").includes("#REF!")).length;
       return { lotsWithProduction: lotsWithProduction.length, withoutProduction, withoutStatus, blocked, slumpIssues, refFixed };
     }
 
-    function projectSummary() {
+    function statusIncludes(lot, term) {
+      return String(lot.status || "").toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "").includes(term);
+    }
+
+    function analysisForLot(lot) {
+      const explicit = number(lot.toAnalyzeSleepers);
+      if (explicit > 0) return explicit;
+      return statusIncludes(lot, "analise") ? number(lot.productionTotal) : 0;
+    }
+
+    function latestLotDate(lots = state.lots) {
+      const dates = lots.map(reportDateForLot).filter(Boolean).sort();
+      return dates.length ? dates[dates.length - 1] : today();
+    }
+
+    function defaultSmartFilters() {
+      const endDate = latestLotDate();
+      return { startDate: addDays(endDate, -6), endDate };
+    }
+
+    function ensureSmartFilters() {
+      const defaults = defaultSmartFilters();
+      state.smartFilters = { ...DEFAULT_SMART_FILTERS, ...(state.smartFilters || {}) };
+      if (!state.smartFilters.startDate) state.smartFilters.startDate = defaults.startDate;
+      if (!state.smartFilters.endDate) state.smartFilters.endDate = defaults.endDate;
+      if (state.smartFilters.startDate > state.smartFilters.endDate) {
+        const temp = state.smartFilters.startDate;
+        state.smartFilters.startDate = state.smartFilters.endDate;
+        state.smartFilters.endDate = temp;
+      }
+    }
+
+    function smartLotsSource() {
+      ensureSmartFilters();
+      const { startDate, endDate } = state.smartFilters;
+      return state.lots.filter(lot => {
+        const date = reportDateForLot(lot);
+        if (!date) return false;
+        return (!startDate || date >= startDate) && (!endDate || date <= endDate);
+      }).sort(compareLotsBySequence);
+    }
+
+    function projectSummary(lots = state.lots) {
       const map = new Map();
-      for (const lot of state.lots) {
+      for (const lot of lots) {
         const key = lot.project || "Projeto não informado";
-        if (!map.has(key)) map.set(key, { project: key, lots: 0, sleepers: 0, blocked: 0, noStatus: 0, planned: 0 });
+        if (!map.has(key)) map.set(key, { project: key, lots: 0, sleepers: 0, rejected: 0, analysis: 0, planned: 0 });
         const item = map.get(key);
         item.lots += 1;
         item.sleepers += number(lot.productionTotal);
-        if (String(lot.status || "").toLowerCase().includes("bloque")) item.blocked += 1;
-        if (!lot.status || lot.status === "Sem status") item.noStatus += 1;
+        item.rejected += rejectedForLot(lot);
+        item.analysis += analysisForLot(lot);
         if (number(lot.productionTotal) <= 0) item.planned += 1;
       }
-      return Array.from(map.values()).sort((a, b) => b.sleepers - a.sleepers);
+      return Array.from(map.values()).sort((a, b) => b.sleepers - a.sleepers || a.project.localeCompare(b.project, "pt-BR"));
     }
 
     function renderInsights() {
       const smart = document.getElementById("smartInsights");
       const quality = document.getElementById("qualityInsights");
       const series = document.getElementById("seriesInsights");
+      const startInput = document.getElementById("smartStartDate");
+      const endInput = document.getElementById("smartEndDate");
+      const periodNote = document.getElementById("smartPeriodNote");
       if (!smart || !quality || !series) return;
-      const q = dataQuality();
-      const projectRows = projectSummary();
-      const activeGroups = getGroups();
-      const nextCritical = activeGroups.filter(group => group.alert.level !== "EM ACOMPANHAMENTO").length;
 
-      smart.innerHTML = `
-        <div class="mini-kpis">
-          <div class="mini-kpi"><small>Com produção</small><strong>${q.lotsWithProduction}</strong></div>
-          <div class="mini-kpi"><small>Projetos</small><strong>${projectRows.length}</strong></div>
-          <div class="mini-kpi"><small>Séries ativas</small><strong>${activeGroups.length}</strong></div>
-          <div class="mini-kpi"><small>Atenção</small><strong>${nextCritical}</strong></div>
-        </div>
-        <div class="series-table-wrap">
-          <table class="series-table">
-            <thead><tr><th>Projeto</th><th>Lotes</th><th>Dormentes</th><th>Bloqueados</th><th>Sem status</th></tr></thead>
-            <tbody>${projectRows.map(row => `
-              <tr>
-                <td><strong>${escapeHtml(row.project)}</strong></td>
-                <td>${row.lots}</td>
-                <td>${formatNumber(row.sleepers)}</td>
-                <td>${row.blocked}</td>
-                <td>${row.noStatus}</td>
-              </tr>
-            `).join("")}</tbody>
-          </table>
-        </div>
-      `;
+      ensureSmartFilters();
+      if (startInput) startInput.value = state.smartFilters.startDate || "";
+      if (endInput) endInput.value = state.smartFilters.endDate || "";
+
+      const smartLots = smartLotsSource();
+      const q = dataQuality();
+      const projectRows = projectSummary(smartLots);
+      const smartGroups = reportGroupsForLots(smartLots);
+      const confirmedForTest = smartGroups.filter(isActionableGroup).length;
+      const periodText = state.smartFilters.startDate && state.smartFilters.endDate
+        ? `${formatDateBr(state.smartFilters.startDate)} a ${formatDateBr(state.smartFilters.endDate)}`
+        : "período selecionado";
+      const totalLotsInPeriod = smartLots.length;
+      const totalSleepersInPeriod = smartLots.reduce((sum, lot) => sum + number(lot.productionTotal), 0);
+      const totalRejectedInPeriod = smartLots.reduce((sum, lot) => sum + rejectedForLot(lot), 0);
+      const totalAnalysisInPeriod = smartLots.reduce((sum, lot) => sum + analysisForLot(lot), 0);
+
+      if (periodNote) {
+        periodNote.textContent = `Período aplicado à Leitura inteligente: ${periodText}. ${formatNumber(totalLotsInPeriod)} lote${totalLotsInPeriod === 1 ? "" : "s"} no recorte.`;
+      }
+
+      if (!smartLots.length) {
+        smart.innerHTML = `
+          <div class="mini-kpis">
+            <div class="mini-kpi"><small>Lotes no período</small><strong>0</strong></div>
+            <div class="mini-kpi"><small>Projetos no período</small><strong>0</strong></div>
+            <div class="mini-kpi"><small>Dormentes</small><strong>0</strong></div>
+            <div class="mini-kpi"><small>Ensaiar agora</small><strong>0</strong></div>
+          </div>
+          <div class="empty"><strong>Nenhum lote neste período</strong>Altere as datas ou use “Semana mais atual” para voltar ao recorte mais recente da planilha.</div>
+        `;
+      } else {
+        smart.innerHTML = `
+          <div class="mini-kpis">
+            <div class="mini-kpi"><small>Lotes no período</small><strong>${formatNumber(totalLotsInPeriod)}</strong></div>
+            <div class="mini-kpi"><small>Projetos no período</small><strong>${projectRows.length}</strong></div>
+            <div class="mini-kpi"><small>Dormentes no período</small><strong>${formatNumber(totalSleepersInPeriod)}</strong></div>
+            <div class="mini-kpi"><small>Ensaiar agora</small><strong>${confirmedForTest}</strong></div>
+          </div>
+          <div class="series-table-wrap">
+            <table class="series-table">
+              <thead><tr><th>Projeto</th><th>Lotes</th><th>Dormentes</th><th>Refugados/Reprovados</th><th>Em análise</th></tr></thead>
+              <tbody>${projectRows.map(row => `
+                <tr>
+                  <td><strong>${escapeHtml(row.project)}</strong></td>
+                  <td>${formatNumber(row.lots)}</td>
+                  <td>${formatNumber(row.sleepers)}</td>
+                  <td>${formatNumber(row.rejected)}</td>
+                  <td>${formatNumber(row.analysis)}</td>
+                </tr>
+              `).join("")}
+                <tr class="smart-total-row">
+                  <td>Total do período</td>
+                  <td>${formatNumber(totalLotsInPeriod)}</td>
+                  <td>${formatNumber(totalSleepersInPeriod)}</td>
+                  <td>${formatNumber(totalRejectedInPeriod)}</td>
+                  <td>${formatNumber(totalAnalysisInPeriod)}</td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+        `;
+      }
 
       const qualityItems = [
         { label: "Linhas sem produção", value: q.withoutProduction, note: "Não entram na contagem de 2.000/10 lotes.", tone: q.withoutProduction ? "warning" : "" },
@@ -2585,17 +2713,19 @@
           <table class="series-table">
             <thead><tr><th>Fábrica</th><th>Projeto</th><th>Ciclo</th><th>Lotes</th><th>Dormentes</th><th>Lote a ensaiar</th><th>Gatilho</th><th>Situação</th></tr></thead>
             <tbody>${seriesRows.map(row => {
-              const lots = row.lots.map(lot => row.testLot && lot.id === row.testLot.id ? `★ ${lot.lot}` : lot.lot).join(" • ");
+              const canShowTestLot = isActionableGroup(row);
+              const lots = row.lots.map(lot => canShowTestLot && row.testLot && lot.id === row.testLot.id ? `★ ${lot.lot}` : lot.lot).join(" • ");
               const trigger = row.totalSleepers >= number(state.config.limitSleepers) ? "2.000 dormentes" : row.lots.length >= number(state.config.limitLots) ? "10 lotes" : row.alert.level === "PRÓXIMO DO ENSAIO" ? "próximo" : "em aberto";
               const situation = row.closedByTest ? "Fechada por ensaio" : row.isLatest ? row.alert.level : "Histórico calculado";
               const tone = situation === "ENSAIAR AGORA" ? "danger" : situation === "PRÓXIMO DO ENSAIO" ? "warning" : "gray";
+              const testLotCell = canShowTestLot ? `<span class="test-lot-table-badge">${escapeHtml(testLotLabel(row))}</span>` : `<span class="badge gray">Aguardando limite</span>`;
               return `<tr>
                 <td>${escapeHtml(factoryLabel(row.factoryId))}</td>
                 <td><strong>${escapeHtml(row.project)}</strong><div class="tiny muted">${escapeHtml(lots)}</div></td>
                 <td>${escapeHtml(row.cycle)}</td>
                 <td>${row.lots.length}</td>
                 <td>${formatNumber(row.totalSleepers)}</td>
-                <td><span class="test-lot-table-badge">${escapeHtml(testLotLabel(row))}</span></td>
+                <td>${testLotCell}</td>
                 <td>${trigger}</td>
                 <td><span class="badge ${tone}">${situation}</span></td>
               </tr>`;
@@ -2824,6 +2954,20 @@
       renderReportOptions();
     }
 
+    function updateSmartFilter(key, value) {
+      state.smartFilters = { ...DEFAULT_SMART_FILTERS, ...(state.smartFilters || {}), [key]: value };
+      ensureSmartFilters();
+      persist();
+      renderInsights();
+    }
+
+    function resetSmartPeriod() {
+      state.smartFilters = defaultSmartFilters();
+      persist();
+      renderInsights();
+      showToast("Leitura inteligente filtrada pela semana mais atual.");
+    }
+
     function filteredLots() {
       const term = state.filters.search.trim().toLowerCase();
       return state.lots.filter(lot => {
@@ -2907,10 +3051,11 @@
       document.getElementById("testSleepersFailed").value = "";
       document.getElementById("testReason").value = "";
       document.getElementById("testModalSubtitle").textContent = `${factoryLabel(group.factoryId)} • ${group.project} • ciclo ${group.cycle}`;
-      const testLot = group.testLot;
+      const canShowTestLot = isActionableGroup(group);
+      const testLot = canShowTestLot ? group.testLot : null;
       document.getElementById("testModalSummary").innerHTML = `
         <strong>Total da série:</strong> ${group.lots.length} lotes • ${formatNumber(group.totalSleepers)} dormentes.<br>
-        <strong>Lote a ser ensaiado:</strong> ${testLot ? `<span class="test-lot-chip">${escapeHtml(testLot.lot || "Lote sem código")}</span>` : "--"}<br>
+        <strong>Lote a ser ensaiado:</strong> ${testLot ? `<span class="test-lot-chip">${escapeHtml(testLot.lot || "Lote sem código")}</span>` : "Aguardando limite mínimo da série"}<br>
         <strong>Lotes:</strong> ${group.lots.map(lot => testLot && lot.id === testLot.id ? `<span class="test-lot-chip">${escapeHtml(lot.lot)}</span>` : escapeHtml(lot.lot)).join(" • ")}
       `;
       document.getElementById("testModal").classList.add("show");
@@ -3387,7 +3532,7 @@
           <td><strong>${escapeHtml(group.project)}</strong><br><small>Ciclo ${escapeHtml(group.cycle)}</small></td>
           <td>${formatNumber(group.totalSleepers)}</td>
           <td>${group.lots.length}</td>
-          <td><span class="pdf-test-lot">${escapeHtml(testLotLabel(group))}</span></td>
+          <td>${isActionableGroup(group) ? `<span class="pdf-test-lot">${escapeHtml(testLotLabel(group))}</span>` : `<span class="pdf-badge">Aguardando limite</span>`}</td>
           <td><span class="pdf-badge ${pdfBadgeClass(group.alert.level)}">${escapeHtml(group.alert.level)}</span></td>
           <td>${escapeHtml(group.alert.message)}</td>
         </tr>`).join("");
@@ -3855,8 +4000,12 @@
           showToast("Cadastre lotes para iniciar uma série antes de registrar ensaio.");
           return;
         }
-        const group = groups.find(item => item.alert.level === "ENSAIAR AGORA") || groups[0];
+        const group = groups.find(isActionableGroup);
         switchTab("painel");
+        if (!group) {
+          showToast("Nenhuma série atingiu o limite mínimo para ensaio.");
+          return;
+        }
         setTimeout(() => openTestModal(group.key), 220);
         return;
       }
@@ -3913,6 +4062,9 @@
         renderFilterOptions();
         renderLotsTable();
       });
+      document.getElementById("smartStartDate").addEventListener("change", event => updateSmartFilter("startDate", event.target.value));
+      document.getElementById("smartEndDate").addEventListener("change", event => updateSmartFilter("endDate", event.target.value));
+      document.getElementById("resetSmartPeriodBtn").addEventListener("click", resetSmartPeriod);
 
       document.getElementById("closeTestModal").addEventListener("click", closeTestModal);
       document.getElementById("cancelTestBtn").addEventListener("click", closeTestModal);
