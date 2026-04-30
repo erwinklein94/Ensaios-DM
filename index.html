@@ -1934,13 +1934,13 @@
 
   <script>
     const STORAGE_KEYS = {
-      lots: "dm_lots_v2",
-      tests: "dm_tests_v2",
-      factories: "dm_factories_v2",
-      projects: "dm_projects_v2",
-      config: "dm_config_v2",
-      reportFilters: "dm_report_filters_v1",
-      smartFilters: "dm_smart_filters_v1"
+      lots: "dm_lots_v3",
+      tests: "dm_tests_v3",
+      factories: "dm_factories_v3",
+      projects: "dm_projects_v3",
+      config: "dm_config_v3",
+      reportFilters: "dm_report_filters_v2",
+      smartFilters: "dm_smart_filters_v2"
     };
 
     const DEFAULT_CONFIG = {
@@ -2074,17 +2074,17 @@
     ];
 
     const EMPTY_LOT = {
-      factoryId: "cavan",
-      project: "Malha Paulista Bitola Larga",
+      factoryId: "",
+      project: "",
       track: "",
       orderNumber: "",
       lot: "",
       sleeperType: "",
-      productionTotal: 300,
+      productionTotal: "",
       manufactureDate: "",
       cure14: "",
       cure28: "",
-      hasUsp: "Não",
+      hasUsp: "",
       uspLot: "",
       shoulderType: "",
       shoulderLot: "",
@@ -2117,7 +2117,7 @@
       toAnalyzeSleepers: "",
       failedSleepers: "",
       approvedProductionTotal: "",
-      status: "Aguardando série",
+      status: "",
       reason: ""
     };
 
@@ -2134,7 +2134,7 @@
     ];
 
     let state = {
-      lots: load(STORAGE_KEYS.lots, SAMPLE_LOTS),
+      lots: load(STORAGE_KEYS.lots, []),
       tests: load(STORAGE_KEYS.tests, []),
       factories: load(STORAGE_KEYS.factories, DEFAULT_FACTORIES),
       projects: load(STORAGE_KEYS.projects, DEFAULT_PROJECTS),
@@ -2456,7 +2456,7 @@
       const container = document.getElementById("alertsGrid");
       if (!groups.length) {
         container.className = "";
-        container.innerHTML = `<div class="empty"><strong>Nenhuma série ativa</strong>Cadastre lotes para iniciar o acompanhamento automático.</div>`;
+        container.innerHTML = `<div class="empty"><strong>Nenhuma série ativa</strong>Importe o CSV da planilha para iniciar o acompanhamento automático.</div>`;
         return;
       }
       container.className = "alert-grid";
@@ -2699,7 +2699,7 @@
             <div class="mini-kpi"><small>Dormentes</small><strong>0</strong></div>
             <div class="mini-kpi"><small>Ensaiar agora</small><strong>0</strong></div>
           </div>
-          <div class="empty"><strong>Nenhum lote neste período</strong>Altere as datas ou use “Semana mais atual” para voltar ao recorte mais recente da planilha.</div>
+          <div class="empty"><strong>Nenhum lote neste período</strong>Importe o CSV da planilha ou altere as datas para visualizar os dados.</div>
         `;
       } else {
         smart.innerHTML = `
@@ -2807,15 +2807,16 @@
 
     function renderField(field) {
       const value = state.form[field.key] ?? "";
+      const blankOption = `<option value="" ${value === "" ? "selected" : ""}>Selecione...</option>`;
       let control = "";
       if (field.type === "factory") {
-        control = `<select data-field="${field.key}">${state.factories.map(factory => `<option value="${escapeHtml(factory.id)}" ${value === factory.id ? "selected" : ""}>${escapeHtml(factory.name)} - ${escapeHtml(factory.city)}/${escapeHtml(factory.uf)}</option>`).join("")}</select>`;
+        control = `<select data-field="${field.key}">${blankOption}${state.factories.map(factory => `<option value="${escapeHtml(factory.id)}" ${value === factory.id ? "selected" : ""}>${escapeHtml(factory.name)} - ${escapeHtml(factory.city)}/${escapeHtml(factory.uf)}</option>`).join("")}</select>`;
       } else if (field.type === "project") {
-        control = `<select data-field="${field.key}">${state.projects.map(project => `<option value="${escapeHtml(project)}" ${value === project ? "selected" : ""}>${escapeHtml(project)}</option>`).join("")}</select>`;
+        control = `<select data-field="${field.key}">${blankOption}${state.projects.map(project => `<option value="${escapeHtml(project)}" ${value === project ? "selected" : ""}>${escapeHtml(project)}</option>`).join("")}</select>`;
       } else if (field.type === "status") {
-        control = `<select data-field="${field.key}">${STATUS_OPTIONS.map(status => `<option value="${escapeHtml(status)}" ${value === status ? "selected" : ""}>${escapeHtml(status)}</option>`).join("")}</select>`;
+        control = `<select data-field="${field.key}">${blankOption}${STATUS_OPTIONS.map(status => `<option value="${escapeHtml(status)}" ${value === status ? "selected" : ""}>${escapeHtml(status)}</option>`).join("")}</select>`;
       } else if (field.type === "select") {
-        control = `<select data-field="${field.key}">${field.options.map(option => `<option value="${escapeHtml(option)}" ${value === option ? "selected" : ""}>${escapeHtml(option)}</option>`).join("")}</select>`;
+        control = `<select data-field="${field.key}">${blankOption}${field.options.map(option => `<option value="${escapeHtml(option)}" ${value === option ? "selected" : ""}>${escapeHtml(option)}</option>`).join("")}</select>`;
       } else if (field.type === "textarea") {
         control = `<textarea data-field="${field.key}" placeholder="${escapeHtml(field.placeholder || "")}">${escapeHtml(value)}</textarea>`;
       } else {
@@ -2886,7 +2887,7 @@
         showToast("Lote cadastrado.");
       }
 
-      state.form = { ...EMPTY_LOT, factoryId: state.form.factoryId, project: state.form.project, sleeperType: state.form.sleeperType, shoulderType: state.form.shoulderType };
+      state.form = { ...EMPTY_LOT };
       state.editingId = null;
       renderAll();
       switchTab("painel");
@@ -4024,6 +4025,10 @@
       if (!confirm("Apagar todos os lotes e ensaios deste navegador? Exporte um backup antes se quiser guardar os dados.")) return;
       state.lots = [];
       state.tests = [];
+      state.form = { ...EMPTY_LOT };
+      state.editingId = null;
+      state.reportFilters = defaultReportFilters();
+      state.smartFilters = defaultSmartFilters();
       renderAll();
       showToast("Lotes e ensaios apagados.");
     }
