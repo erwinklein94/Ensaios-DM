@@ -50,6 +50,105 @@
         linear-gradient(180deg, #f3fbff 0%, var(--bg) 58%, #e7f9ff 100%);
     }
 
+    body.dark-theme {
+      --bg: #001f36;
+      --panel: #062f4f;
+      --ink: #eaf9ff;
+      --muted: #a9d8ee;
+      --line: rgba(191, 240, 255, .22);
+      --navy: #002844;
+      --navy-2: #001f36;
+      --navy-3: #001728;
+      --blue: #08a9df;
+      --cyan: #39c6ee;
+      --cyan-2: #67d9f5;
+      --yellow: #00d866;
+      --yellow-2: #4ff0a0;
+      --green: #00d866;
+      --green-2: #00d866;
+      --purple: #08a9df;
+      --steel: #0b3d63;
+      --red: #39c6ee;
+      --red-bg: rgba(8, 169, 223, .12);
+      --amber: #39c6ee;
+      --amber-bg: rgba(8, 169, 223, .10);
+      --ok: #00d866;
+      --ok-bg: rgba(0, 216, 102, .10);
+      --shadow: 0 22px 60px rgba(0, 0, 0, .28);
+      --shadow-soft: 0 12px 32px rgba(0, 0, 0, .20);
+      color: var(--ink);
+      background:
+        radial-gradient(circle at 15% -5%, rgba(8,169,223,.16), transparent 34rem),
+        radial-gradient(circle at 95% 0%, rgba(0,216,102,.10), transparent 30rem),
+        linear-gradient(180deg, #001728 0%, #001f36 58%, #002844 100%);
+    }
+
+    body.dark-theme .tabs {
+      background: rgba(0, 31, 54, .92);
+      border-bottom-color: rgba(191, 240, 255, .18);
+    }
+
+    body.dark-theme .section-card,
+    body.dark-theme .insight-card,
+    body.dark-theme .history-card,
+    body.dark-theme .modal,
+    body.dark-theme .kpi,
+    body.dark-theme .alert-card,
+    body.dark-theme .form-section,
+    body.dark-theme .table-wrap {
+      background: var(--panel);
+      border-color: var(--line);
+    }
+
+    body.dark-theme input,
+    body.dark-theme select,
+    body.dark-theme textarea,
+    body.dark-theme .tab-btn,
+    body.dark-theme .btn-outline,
+    body.dark-theme .btn-light,
+    body.dark-theme .mini-kpi,
+    body.dark-theme .quality-item,
+    body.dark-theme .metric,
+    body.dark-theme .lot-list,
+    body.dark-theme .empty,
+    body.dark-theme .modal-summary,
+    body.dark-theme .import-note,
+    body.dark-theme .mini-item {
+      background: rgba(255,255,255,.06);
+      border-color: var(--line);
+      color: var(--ink);
+    }
+
+    body.dark-theme th {
+      background: rgba(255,255,255,.07);
+      color: var(--muted);
+    }
+
+    body.dark-theme td {
+      border-bottom-color: rgba(191, 240, 255, .12);
+    }
+
+    body.dark-theme tr:hover td {
+      background: rgba(255,255,255,.05);
+    }
+
+    body.dark-theme .tab-btn.active,
+    body.dark-theme .btn-primary {
+      background: var(--cyan);
+      color: var(--navy-3);
+    }
+
+    body.dark-theme .btn-accent {
+      background: var(--green-2);
+      color: var(--navy-3);
+    }
+
+    body.dark-theme .badge.gray {
+      background: rgba(255,255,255,.10);
+      color: var(--muted);
+    }
+
+
     button, input, select, textarea { font: inherit; }
     button { cursor: pointer; }
     a { color: inherit; }
@@ -167,6 +266,31 @@
       align-items: center;
       flex: 0 0 auto;
     }
+
+    .theme-toggle {
+      width: 38px;
+      height: 38px;
+      border: 1px solid rgba(255,255,255,.34);
+      background: rgba(255,255,255,.12);
+      color: #fff;
+      clip-path: var(--notch-sm);
+      display: inline-grid;
+      place-items: center;
+      font-weight: 950;
+      font-size: 15px;
+      box-shadow: 0 10px 24px rgba(0, 59, 104, .08);
+      transition: .18s ease;
+    }
+    .theme-toggle:hover {
+      transform: translateY(-1px);
+      background: rgba(255,255,255,.20);
+    }
+    body.dark-theme .theme-toggle {
+      background: rgba(0,216,102,.14);
+      border-color: rgba(0,216,102,.42);
+      color: #eafff6;
+    }
+
 
     .hero-grid {
       display: grid;
@@ -604,7 +728,28 @@
     .form-footer p { margin: 0; color: rgba(255,255,255,.78); font-size: 14px; position: relative; z-index: 1; }
     .form-footer .btn { position: relative; z-index: 1; }
 
-    .filters { display: grid; grid-template-columns: minmax(240px, 2fr) 1fr 1fr 1fr; gap: 12px; margin-top: 16px; }
+    .filters {
+      display: grid;
+      grid-template-columns: minmax(240px, 2fr) minmax(165px, 1fr) minmax(190px, 1fr) minmax(190px, 1fr) auto;
+      gap: 12px;
+      margin-top: 16px;
+      align-items: end;
+    }
+    .filter-field label {
+      display: block;
+      font-size: 11px;
+      font-weight: 950;
+      color: var(--navy);
+      margin-bottom: 6px;
+      text-transform: uppercase;
+      letter-spacing: .06em;
+    }
+    .filter-count {
+      margin-top: 12px;
+      color: var(--muted);
+      font-size: 13px;
+      font-weight: 850;
+    }
 
     .table-wrap {
       overflow-x: auto;
@@ -764,6 +909,7 @@
           <input type="file" id="importCsvTop" accept=".csv,text/csv" style="display:none" />
           <button class="btn btn-light" id="exportCsvTop">Exportar CSV</button>
           <button class="btn btn-accent" id="exportBackupTop">Backup JSON</button>
+          <button class="theme-toggle" id="themeToggle" type="button" aria-label="Ativar tema escuro" title="Tema escuro">◐</button>
         </div>
       </div>
 
@@ -894,11 +1040,25 @@
           <button class="btn btn-primary" id="exportCsvBtn">Exportar CSV</button>
         </div>
         <div class="filters">
-          <input id="searchInput" placeholder="Buscar lote, pedido, ombreira, projeto..." />
-          <select id="filterFactory"></select>
-          <select id="filterProject"></select>
-          <select id="filterStatus"></select>
+          <div class="filter-field">
+            <label for="searchInput">Busca geral</label>
+            <input id="searchInput" placeholder="Buscar lote, pedido, ombreira..." />
+          </div>
+          <div class="filter-field">
+            <label for="filterFactory">Fábrica</label>
+            <select id="filterFactory"></select>
+          </div>
+          <div class="filter-field">
+            <label for="filterProject">Projeto</label>
+            <select id="filterProject"></select>
+          </div>
+          <div class="filter-field">
+            <label for="filterStatus">Status de liberação</label>
+            <select id="filterStatus"></select>
+          </div>
+          <button class="btn btn-outline" id="clearLotFiltersBtn" type="button">Limpar filtros</button>
         </div>
+        <div class="filter-count" id="lotFilterCount"></div>
       </div>
       <div class="table-wrap">
         <table>
@@ -1817,15 +1977,37 @@
       showToast("Lote excluído.");
     }
 
+    function uniqueSorted(values) {
+      return [...new Set(values.filter(value => String(value || "").trim()))]
+        .sort((a, b) => String(a).localeCompare(String(b), "pt-BR", { sensitivity: "base" }));
+    }
+
     function renderFilterOptions() {
       const factorySelect = document.getElementById("filterFactory");
       const projectSelect = document.getElementById("filterProject");
       const statusSelect = document.getElementById("filterStatus");
       document.getElementById("searchInput").value = state.filters.search;
 
-      factorySelect.innerHTML = `<option value="todas">Todas as fábricas</option>` + state.factories.map(factory => `<option value="${escapeHtml(factory.id)}" ${state.filters.factory === factory.id ? "selected" : ""}>${escapeHtml(factory.name)}</option>`).join("");
-      projectSelect.innerHTML = `<option value="todos">Todos os projetos</option>` + state.projects.map(project => `<option value="${escapeHtml(project)}" ${state.filters.project === project ? "selected" : ""}>${escapeHtml(project)}</option>`).join("");
-      statusSelect.innerHTML = `<option value="todos">Todos os status</option>` + STATUS_OPTIONS.map(status => `<option value="${escapeHtml(status)}" ${state.filters.status === status ? "selected" : ""}>${escapeHtml(status)}</option>`).join("");
+      const factoryIds = uniqueSorted([
+        ...state.factories.map(factory => factory.id),
+        ...state.lots.map(lot => lot.factoryId)
+      ]);
+      const projects = uniqueSorted([
+        ...state.projects,
+        ...state.lots.map(lot => lot.project)
+      ]);
+      const statuses = uniqueSorted([
+        ...STATUS_OPTIONS,
+        ...state.lots.map(lot => lot.status || "Sem status")
+      ]);
+
+      factorySelect.innerHTML = `<option value="todas">Todas as fábricas</option>` + factoryIds.map(factoryId => {
+        const selected = state.filters.factory === factoryId ? "selected" : "";
+        return `<option value="${escapeHtml(factoryId)}" ${selected}>${escapeHtml(factoryLabel(factoryId))}</option>`;
+      }).join("");
+
+      projectSelect.innerHTML = `<option value="todos">Todos os projetos</option>` + projects.map(project => `<option value="${escapeHtml(project)}" ${state.filters.project === project ? "selected" : ""}>${escapeHtml(project)}</option>`).join("");
+      statusSelect.innerHTML = `<option value="todos">Todos os status de liberação</option>` + statuses.map(status => `<option value="${escapeHtml(status)}" ${state.filters.status === status ? "selected" : ""}>${escapeHtml(status)}</option>`).join("");
     }
 
     function filteredLots() {
@@ -1846,7 +2028,8 @@
         const matchText = !term || text.includes(term);
         const matchFactory = state.filters.factory === "todas" || lot.factoryId === state.filters.factory;
         const matchProject = state.filters.project === "todos" || lot.project === state.filters.project;
-        const matchStatus = state.filters.status === "todos" || lot.status === state.filters.status;
+        const lotStatus = lot.status || "Sem status";
+        const matchStatus = state.filters.status === "todos" || lotStatus === state.filters.status;
         return matchText && matchFactory && matchProject && matchStatus;
       });
     }
@@ -1855,7 +2038,12 @@
       const tbody = document.getElementById("lotsTableBody");
       const empty = document.getElementById("lotsEmpty");
       const rows = filteredLots();
+      const count = document.getElementById("lotFilterCount");
       empty.style.display = rows.length ? "none" : "block";
+      if (count) {
+        const total = state.lots.length;
+        count.textContent = `${rows.length} de ${total} lote${total === 1 ? "" : "s"} exibido${rows.length === 1 ? "" : "s"}.`;
+      }
       tbody.innerHTML = rows.map(lot => `
         <tr>
           <td>
@@ -2428,6 +2616,29 @@
       }
     }
 
+    function applyTheme(theme) {
+      const isDark = theme === "dark";
+      document.body.classList.toggle("dark-theme", isDark);
+      const btn = document.getElementById("themeToggle");
+      if (btn) {
+        btn.textContent = isDark ? "☀" : "◐";
+        btn.title = isDark ? "Tema claro" : "Tema escuro";
+        btn.setAttribute("aria-label", isDark ? "Ativar tema claro" : "Ativar tema escuro");
+      }
+      localStorage.setItem("dm_theme_v1", theme);
+    }
+
+    function initTheme() {
+      const savedTheme = localStorage.getItem("dm_theme_v1") || "light";
+      applyTheme(savedTheme);
+    }
+
+    function toggleTheme() {
+      const nextTheme = document.body.classList.contains("dark-theme") ? "light" : "dark";
+      applyTheme(nextTheme);
+      showToast(nextTheme === "dark" ? "Tema escuro ativado." : "Tema claro ativado.");
+    }
+
     function bindEvents() {
       document.querySelectorAll(".tab-btn").forEach(btn => btn.addEventListener("click", () => switchTab(btn.dataset.tab)));
       document.querySelectorAll("[data-tab-target]").forEach(btn => btn.addEventListener("click", () => switchTab(btn.dataset.tabTarget)));
@@ -2443,6 +2654,11 @@
       document.getElementById("filterFactory").addEventListener("change", event => { state.filters.factory = event.target.value; renderLotsTable(); });
       document.getElementById("filterProject").addEventListener("change", event => { state.filters.project = event.target.value; renderLotsTable(); });
       document.getElementById("filterStatus").addEventListener("change", event => { state.filters.status = event.target.value; renderLotsTable(); });
+      document.getElementById("clearLotFiltersBtn").addEventListener("click", () => {
+        state.filters = { search: "", factory: "todas", project: "todos", status: "todos" };
+        renderFilterOptions();
+        renderLotsTable();
+      });
 
       document.getElementById("closeTestModal").addEventListener("click", closeTestModal);
       document.getElementById("cancelTestBtn").addEventListener("click", closeTestModal);
@@ -2453,6 +2669,7 @@
       document.getElementById("exportCsvBtn").addEventListener("click", exportCsv);
       document.getElementById("exportCsvConfig").addEventListener("click", exportCsv);
       document.getElementById("exportBackupTop").addEventListener("click", exportBackup);
+      document.getElementById("themeToggle").addEventListener("click", toggleTheme);
       document.getElementById("exportBackupConfig").addEventListener("click", exportBackup);
       document.getElementById("importBackupInput").addEventListener("change", event => importBackup(event.target.files[0]));
       document.getElementById("importCsvInput").addEventListener("change", event => importCsv(event.target.files[0]));
@@ -2466,6 +2683,7 @@
       document.getElementById("projectForm").addEventListener("submit", addProject);
     }
 
+    initTheme();
     bindEvents();
     renderAll();
   </script>
