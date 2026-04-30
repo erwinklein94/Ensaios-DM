@@ -801,6 +801,26 @@
     .inline-form.project { grid-template-columns: 1fr auto; }
     .config-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 14px; margin-top: 16px; }
 
+    .report-panel {
+      margin-bottom: 16px;
+    }
+    .report-summary {
+      margin-top: 16px;
+    }
+    .report-mini-grid {
+      grid-template-columns: repeat(5, minmax(0, 1fr));
+    }
+    .report-note {
+      margin-top: 12px;
+      padding: 13px;
+      clip-path: var(--notch-sm);
+      background: #e7f9ff;
+      border: 1px solid var(--line);
+      color: var(--muted);
+      font-size: 13px;
+      line-height: 1.55;
+    }
+
     .empty {
       padding: 38px 22px;
       text-align: center;
@@ -1082,7 +1102,7 @@
     .pdf-report { display: none; }
 
     @media print {
-      @page { size: A4 landscape; margin: 9mm; }
+      @page { size: A4 portrait; margin: 9mm; }
 
       body.pdf-export-mode {
         background: #f3fbff !important;
@@ -1115,7 +1135,7 @@
       }
 
       body.pdf-export-mode .pdf-page {
-        min-height: 190mm;
+        min-height: 277mm;
         page-break-after: always;
         break-after: page;
         background: #f3fbff !important;
@@ -1142,7 +1162,7 @@
 
       body.pdf-export-mode .pdf-report-header {
         display: grid;
-        grid-template-columns: 150px 1fr auto;
+        grid-template-columns: 112px 1fr;
         gap: 16px;
         align-items: center;
         padding: 13px 16px;
@@ -1182,7 +1202,8 @@
       }
 
       body.pdf-export-mode .pdf-period-card {
-        min-width: 250px;
+        grid-column: 1 / -1;
+        min-width: 0;
         padding: 10px 13px;
         background: rgba(0, 23, 40, .30) !important;
         border: 1px solid rgba(255,255,255,.22);
@@ -1193,7 +1214,7 @@
 
       body.pdf-export-mode .pdf-kpi-grid {
         display: grid;
-        grid-template-columns: repeat(6, 1fr);
+        grid-template-columns: repeat(3, 1fr);
         gap: 8px;
         margin-bottom: 10px;
       }
@@ -1231,20 +1252,20 @@
 
       body.pdf-export-mode .pdf-layout {
         display: grid;
-        grid-template-columns: 1fr 1fr 1fr;
+        grid-template-columns: 1fr;
         gap: 10px;
       }
 
       body.pdf-export-mode .pdf-layout.two {
-        grid-template-columns: 1.1fr .9fr;
+        grid-template-columns: 1fr;
       }
 
       body.pdf-export-mode .pdf-card {
         background: #ffffff !important;
         border: 1px solid #cdeeff !important;
         clip-path: var(--notch);
-        padding: 12px;
-        min-height: 120px;
+        padding: 10px;
+        min-height: 0;
         box-shadow: none !important;
       }
 
@@ -1267,7 +1288,7 @@
         display: flex;
         align-items: end;
         gap: 7px;
-        height: 118px;
+        height: 82px;
         padding: 6px 2px 0;
       }
 
@@ -1290,7 +1311,7 @@
 
       body.pdf-export-mode .pdf-bar-track {
         position: relative;
-        height: 82px;
+        height: 52px;
         background: #e7f9ff !important;
         border: 1px solid #dff6ff !important;
         display: flex;
@@ -1508,7 +1529,7 @@
       .hero-actions { width: auto; justify-content: flex-end; }
       .hero-actions .btn { flex: 0 0 auto; padding: 8px 10px; }
       .kpi-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
-      .form-grid, .filters, .config-grid, .metric-row, .mini-kpis, .start-grid { grid-template-columns: 1fr; }
+      .form-grid, .filters, .config-grid, .metric-row, .mini-kpis, .report-mini-grid, .start-grid { grid-template-columns: 1fr; }
       .start-card { min-height: 132px; }
       .inline-form.factory, .inline-form.project { grid-template-columns: 1fr; }
       .shell { padding: 0 15px; }
@@ -1549,7 +1570,7 @@
         <div class="hero-actions">
           <label class="btn btn-light" for="importCsvTop">Importar CSV</label>
           <input type="file" id="importCsvTop" accept=".csv,text/csv" style="display:none" />
-          <button class="btn btn-accent" id="exportPdfTop" type="button">Exportar PDF</button>
+          <button class="btn btn-accent" id="exportPdfTop" type="button">Report / PDF</button>
           <button class="theme-toggle" id="themeToggle" type="button" aria-label="Ativar tema claro" title="Tema claro">☀</button>
         </div>
       </div>
@@ -1560,6 +1581,7 @@
     <div class="shell">
       <button class="tab-btn active" data-tab="inicio">⌂ Início</button>
       <button class="tab-btn" data-tab="painel">▣ Painel</button>
+      <button class="tab-btn" data-tab="report">▤ Report</button>
       <button class="tab-btn" data-tab="cadastro">＋ Cadastrar lote</button>
       <button class="tab-btn" data-tab="lotes">☷ Lotes</button>
       <button class="tab-btn" data-tab="ensaios">✓ Ensaios</button>
@@ -1641,6 +1663,44 @@
         <h3>Séries calculadas por projeto</h3>
         <p>O sistema separa historicamente os ciclos pela regra de 2.000 dormentes ou 10 lotes. No painel de alerta aparece apenas a série ativa mais recente de cada projeto.</p>
         <div id="seriesInsights"></div>
+      </div>
+    </section>
+
+
+    <section id="report" class="view">
+      <div class="section-card">
+        <div class="section-title">
+          <div>
+            <h2>Report</h2>
+            <p>Configure o recorte dos dados que entrarão no PDF: fábrica, projeto e data de fabricação. Deixe em branco ou selecione “todos” para exportar tudo.</p>
+          </div>
+          <button class="btn btn-accent" id="exportPdfReportBtn" type="button">Exportar PDF</button>
+        </div>
+
+        <div class="form-section report-panel">
+          <h3>Dados para exportação</h3>
+          <p>Estes filtros afetam apenas o PDF. A consulta de lotes continua independente.</p>
+          <div class="form-grid">
+            <div class="field">
+              <label for="reportFactory">Fábrica</label>
+              <select id="reportFactory"></select>
+            </div>
+            <div class="field">
+              <label for="reportProject">Projeto</label>
+              <select id="reportProject"></select>
+            </div>
+            <div class="field">
+              <label for="reportDate">Data de fabricação</label>
+              <input id="reportDate" type="date" />
+            </div>
+          </div>
+          <div class="modal-actions report-actions" style="justify-content:flex-start">
+            <button class="btn btn-outline" id="clearReportFiltersBtn" type="button">Limpar recorte</button>
+            <button class="btn btn-primary" type="button" data-tab-target="painel">Ver painel</button>
+          </div>
+        </div>
+
+        <div id="reportSummary" class="report-summary"></div>
       </div>
     </section>
 
@@ -1838,7 +1898,8 @@
       tests: "dm_tests_v2",
       factories: "dm_factories_v2",
       projects: "dm_projects_v2",
-      config: "dm_config_v2"
+      config: "dm_config_v2",
+      reportFilters: "dm_report_filters_v1"
     };
 
     const DEFAULT_CONFIG = {
@@ -1846,6 +1907,12 @@
       limitLots: 10,
       warningSleepers: 1800,
       warningLots: 9
+    };
+
+    const DEFAULT_REPORT_FILTERS = {
+      factory: "todas",
+      project: "todos",
+      date: ""
     };
 
     const DEFAULT_FACTORIES = [
@@ -2024,6 +2091,7 @@
       factories: load(STORAGE_KEYS.factories, DEFAULT_FACTORIES),
       projects: load(STORAGE_KEYS.projects, DEFAULT_PROJECTS),
       config: load(STORAGE_KEYS.config, DEFAULT_CONFIG),
+      reportFilters: load(STORAGE_KEYS.reportFilters, DEFAULT_REPORT_FILTERS),
       activeTab: "inicio",
       editingId: null,
       form: { ...EMPTY_LOT },
@@ -2084,6 +2152,7 @@
       localStorage.setItem(STORAGE_KEYS.factories, JSON.stringify(state.factories));
       localStorage.setItem(STORAGE_KEYS.projects, JSON.stringify(state.projects));
       localStorage.setItem(STORAGE_KEYS.config, JSON.stringify(state.config));
+      localStorage.setItem(STORAGE_KEYS.reportFilters, JSON.stringify(state.reportFilters));
     }
 
     function number(value) {
@@ -2292,6 +2361,7 @@
       document.querySelectorAll(".tab-btn").forEach(btn => btn.classList.toggle("active", btn.dataset.tab === tab));
       if (tab === "cadastro") renderLotForm();
       if (tab === "lotes") renderLotsTable();
+      if (tab === "report") renderReportOptions();
       if (tab === "ensaios") renderHistory();
       if (tab === "config") renderSettings();
       window.scrollTo({ top: 0, behavior: "smooth" });
@@ -2304,6 +2374,7 @@
       renderAlerts();
       renderInsights();
       renderFilterOptions();
+      renderReportOptions();
       renderLotsTable();
       renderHistory();
       renderSettings();
@@ -2695,6 +2766,64 @@
       statusSelect.innerHTML = `<option value="todos">Todos os status de liberação</option>` + statuses.map(status => `<option value="${escapeHtml(status)}" ${state.filters.status === status ? "selected" : ""}>${escapeHtml(status)}</option>`).join("");
     }
 
+    function reportDateForLot(lot) {
+      if (lot.manufactureDate) return String(lot.manufactureDate).slice(0, 10);
+      const parsed = parseLotDate(lot);
+      return parsed ? parsed.toISOString().slice(0, 10) : "";
+    }
+
+    function renderReportOptions() {
+      const factorySelect = document.getElementById("reportFactory");
+      const projectSelect = document.getElementById("reportProject");
+      const dateInput = document.getElementById("reportDate");
+      const summary = document.getElementById("reportSummary");
+      if (!factorySelect || !projectSelect || !dateInput || !summary) return;
+
+      state.reportFilters = { ...DEFAULT_REPORT_FILTERS, ...(state.reportFilters || {}) };
+
+      const factoryIds = uniqueSorted([
+        ...state.factories.map(factory => factory.id),
+        ...state.lots.map(lot => lot.factoryId)
+      ]);
+      const projects = uniqueSorted([
+        ...state.projects,
+        ...state.lots.map(lot => lot.project)
+      ]);
+
+      factorySelect.innerHTML = `<option value="todas">Todas as fábricas</option>` + factoryIds.map(factoryId => {
+        const selected = state.reportFilters.factory === factoryId ? "selected" : "";
+        return `<option value="${escapeHtml(factoryId)}" ${selected}>${escapeHtml(factoryLabel(factoryId))}</option>`;
+      }).join("");
+      projectSelect.innerHTML = `<option value="todos">Todos os projetos</option>` + projects.map(project => `<option value="${escapeHtml(project)}" ${state.reportFilters.project === project ? "selected" : ""}>${escapeHtml(project)}</option>`).join("");
+      dateInput.value = state.reportFilters.date || "";
+
+      const lots = reportLotsSource();
+      const stats = reportStats(lots);
+      const groups = reportGroupsForLots(lots);
+      const filterLabel = reportFilterLabel(lots);
+      if (!lots.length) {
+        summary.innerHTML = `<div class="empty"><strong>Nenhum dado para o recorte selecionado</strong>Altere a fábrica, o projeto ou a data para gerar o PDF.</div>`;
+        return;
+      }
+
+      summary.innerHTML = `
+        <div class="mini-kpis report-mini-grid">
+          <div class="mini-kpi"><small>Recorte</small><strong>${escapeHtml(filterLabel)}</strong></div>
+          <div class="mini-kpi"><small>Lotes no PDF</small><strong>${formatNumber(lots.length)}</strong></div>
+          <div class="mini-kpi"><small>Dormentes</small><strong>${formatNumber(stats.total)}</strong></div>
+          <div class="mini-kpi"><small>Aprovação</small><strong>${formatPercent(stats.approval)}</strong></div>
+          <div class="mini-kpi"><small>Séries no recorte</small><strong>${formatNumber(groups.length)}</strong></div>
+        </div>
+        <div class="report-note">O botão <strong>Exportar PDF</strong> usa exatamente este recorte. A data é aplicada sobre a <strong>data de fabricação</strong> do lote; quando ela fica vazia, entram todas as datas.</div>
+      `;
+    }
+
+    function updateReportFilter(key, value) {
+      state.reportFilters = { ...DEFAULT_REPORT_FILTERS, ...(state.reportFilters || {}), [key]: value };
+      persist();
+      renderReportOptions();
+    }
+
     function filteredLots() {
       const term = state.filters.search.trim().toLowerCase();
       return state.lots.filter(lot => {
@@ -3033,24 +3162,33 @@
     }
 
     function reportLotsSource() {
-      const hasFilters = Boolean(
-        state.filters.search.trim() ||
-        state.filters.factory !== "todas" ||
-        state.filters.project !== "todos" ||
-        state.filters.status !== "todos"
-      );
-      const lots = hasFilters ? filteredLots() : state.lots;
-      return lots.filter(lot => number(lot.productionTotal) > 0).sort(compareLotsBySequence);
+      const filters = { ...DEFAULT_REPORT_FILTERS, ...(state.reportFilters || {}) };
+      return state.lots.filter(lot => {
+        if (number(lot.productionTotal) <= 0) return false;
+        const matchFactory = filters.factory === "todas" || lot.factoryId === filters.factory;
+        const matchProject = filters.project === "todos" || lot.project === filters.project;
+        const matchDate = !filters.date || reportDateForLot(lot) === filters.date;
+        return matchFactory && matchProject && matchDate;
+      }).sort(compareLotsBySequence);
     }
 
     function parseLotDate(lot) {
       const raw = lot.manufactureDate || lot.createdAt || lot.updatedAt || "";
+      const isoDate = String(raw).slice(0, 10);
+      if (/^\d{4}-\d{2}-\d{2}$/.test(isoDate)) {
+        const [year, month, day] = isoDate.split("-").map(Number);
+        return new Date(year, month - 1, day);
+      }
       const parsed = Date.parse(raw);
       return Number.isFinite(parsed) ? new Date(parsed) : null;
     }
 
     function formatDateBr(value) {
       if (!value) return "--";
+      if (typeof value === "string" && /^\d{4}-\d{2}-\d{2}/.test(value)) {
+        const [year, month, day] = value.slice(0, 10).split("-");
+        return `${day}/${month}/${year}`;
+      }
       const date = value instanceof Date ? value : new Date(value);
       if (!Number.isFinite(date.getTime())) return "--";
       return date.toLocaleDateString("pt-BR");
@@ -3106,7 +3244,15 @@
       const approved = lots.reduce((sum, lot) => sum + approvedForLot(lot), 0);
       const rejected = lots.reduce((sum, lot) => sum + rejectedForLot(lot), 0);
       const lotBaseKeys = new Set(lots.map(lot => baseKey(lot.factoryId, lot.project)));
-      const relatedTests = state.tests.filter(test => lotBaseKeys.has(test.baseKey || baseKey(test.factoryId, test.project)));
+      const lotIds = new Set(lots.map(lot => lot.id));
+      const filters = { ...DEFAULT_REPORT_FILTERS, ...(state.reportFilters || {}) };
+      let relatedTests = state.tests.filter(test => lotBaseKeys.has(test.baseKey || baseKey(test.factoryId, test.project)));
+      if (filters.date) {
+        relatedTests = relatedTests.filter(test => {
+          const linkedLot = Array.isArray(test.lots) && test.lots.some(item => lotIds.has(item.id));
+          return test.date === filters.date || linkedLot || lotIds.has(test.testLotId);
+        });
+      }
       const testRefs = new Set(relatedTests.map(test => test.id));
       lots.forEach(lot => {
         const ref = String(lot.iauditorTest || lot.releaseTestSeries || "").trim();
@@ -3131,11 +3277,11 @@
     }
 
     function reportFilterLabel(lots) {
+      const filters = { ...DEFAULT_REPORT_FILTERS, ...(state.reportFilters || {}) };
       const parts = [];
-      if (state.filters.factory !== "todas") parts.push(factoryLabel(state.filters.factory));
-      if (state.filters.project !== "todos") parts.push(state.filters.project);
-      if (state.filters.status !== "todos") parts.push(state.filters.status);
-      if (state.filters.search.trim()) parts.push(`Busca: ${state.filters.search.trim()}`);
+      if (filters.factory !== "todas") parts.push(factoryLabel(filters.factory));
+      if (filters.project !== "todos") parts.push(filters.project);
+      if (filters.date) parts.push(`Data: ${formatDateBr(filters.date)}`);
       if (parts.length) return parts.join(" • ");
       const factories = uniqueSorted(lots.map(lot => factoryLabel(lot.factoryId))).slice(0, 3);
       return factories.length ? `Todos os dados cadastrados • ${factories.join(" • ")}${uniqueSorted(lots.map(lot => lot.factoryId)).length > 3 ? " • ..." : ""}` : "Todos os dados cadastrados";
@@ -3203,14 +3349,34 @@
     }
 
     function reportGroupsForLots(lots) {
-      const lotIds = new Set(lots.map(lot => lot.id));
-      const allowedBaseKeys = new Set(lots.map(lot => baseKey(lot.factoryId, lot.project)));
-      return getGroups()
-        .filter(group => allowedBaseKeys.has(baseKey(group.factoryId, group.project)) || group.lots.some(lot => lotIds.has(lot.id)))
-        .sort((a, b) => {
-          const order = { "ENSAIAR AGORA": 0, "PRÓXIMO DO ENSAIO": 1, "EM ACOMPANHAMENTO": 2 };
-          return order[a.alert.level] - order[b.alert.level] || b.totalSleepers - a.totalSleepers;
-        });
+      const map = new Map();
+      for (const lot of sortedSeriesLots(lots)) {
+        if (number(lot.productionTotal) <= 0) continue;
+        const key = `${lot.factoryId}__${lot.project}__${lot.cycle || 1}`;
+        if (!map.has(key)) {
+          map.set(key, {
+            key,
+            factoryId: lot.factoryId,
+            project: lot.project,
+            cycle: lot.cycle || 1,
+            lots: [],
+            totalSleepers: 0,
+            totalApproved: 0
+          });
+        }
+        const group = map.get(key);
+        group.lots.push(lot);
+        group.totalSleepers += number(lot.productionTotal);
+        group.totalApproved += approvedForLot(lot);
+      }
+      return Array.from(map.values()).map(group => {
+        const prepared = { ...group, lots: sortedSeriesLots(group.lots) };
+        const alert = alertInfo(prepared.totalSleepers, prepared.lots.length);
+        return { ...prepared, alert, testLot: testLotForGroup(prepared) };
+      }).sort((a, b) => {
+        const order = { "ENSAIAR AGORA": 0, "PRÓXIMO DO ENSAIO": 1, "EM ACOMPANHAMENTO": 2 };
+        return order[a.alert.level] - order[b.alert.level] || b.totalSleepers - a.totalSleepers;
+      });
     }
 
     function renderReportGroupRows(groups) {
@@ -3379,12 +3545,20 @@
     }
 
     function exportPdf() {
+      const lots = reportLotsSource();
+      if (!lots.length) {
+        switchTab("report");
+        showToast("Nenhum dado encontrado para o recorte do Report.");
+        return;
+      }
       const report = document.getElementById("pdfReport");
       report.innerHTML = buildPdfReport();
       window.__dmOriginalTitle = document.title;
-      document.title = `relatorio-dormentes-${today()}`;
+      const filters = { ...DEFAULT_REPORT_FILTERS, ...(state.reportFilters || {}) };
+      const datePart = filters.date || today();
+      document.title = `relatorio-dormentes-${datePart}`;
       document.body.classList.add("pdf-export-mode");
-      showToast("Relatório executivo preparado. Na janela de impressão, escolha Salvar como PDF.");
+      showToast("Relatório preparado. Na janela de impressão, escolha Salvar como PDF em orientação Retrato.");
       setTimeout(() => window.print(), 220);
     }
 
@@ -3395,7 +3569,8 @@
         tests: state.tests,
         factories: state.factories,
         projects: state.projects,
-        config: state.config
+        config: state.config,
+        reportFilters: state.reportFilters
       };
       download(`backup-controle-dormentes-${today()}.json`, JSON.stringify(payload, null, 2), "application/json;charset=utf-8");
     }
@@ -3626,6 +3801,7 @@
           state.factories = payload.factories;
           state.projects = payload.projects;
           state.config = payload.config || DEFAULT_CONFIG;
+          state.reportFilters = payload.reportFilters || DEFAULT_REPORT_FILTERS;
           renderAll();
           showToast("Backup importado.");
         } catch (error) {
@@ -3642,6 +3818,7 @@
       state.factories = DEFAULT_FACTORIES;
       state.projects = DEFAULT_PROJECTS;
       state.config = DEFAULT_CONFIG;
+      state.reportFilters = DEFAULT_REPORT_FILTERS;
       state.form = { ...EMPTY_LOT };
       state.editingId = null;
       renderAll();
@@ -3742,7 +3919,16 @@
       document.getElementById("testForm").addEventListener("submit", registerTest);
       document.getElementById("testModal").addEventListener("click", event => { if (event.target.id === "testModal") closeTestModal(); });
 
-      document.getElementById("exportPdfTop").addEventListener("click", exportPdf);
+      document.getElementById("exportPdfTop").addEventListener("click", () => switchTab("report"));
+      document.getElementById("exportPdfReportBtn").addEventListener("click", exportPdf);
+      document.getElementById("reportFactory").addEventListener("change", event => updateReportFilter("factory", event.target.value));
+      document.getElementById("reportProject").addEventListener("change", event => updateReportFilter("project", event.target.value));
+      document.getElementById("reportDate").addEventListener("change", event => updateReportFilter("date", event.target.value));
+      document.getElementById("clearReportFiltersBtn").addEventListener("click", () => {
+        state.reportFilters = { ...DEFAULT_REPORT_FILTERS };
+        persist();
+        renderReportOptions();
+      });
       document.getElementById("exportCsvBtn").addEventListener("click", exportCsv);
       document.getElementById("exportCsvConfig").addEventListener("click", exportCsv);
       document.getElementById("themeToggle").addEventListener("click", toggleTheme);
